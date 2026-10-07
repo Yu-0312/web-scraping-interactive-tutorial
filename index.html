@@ -1,0 +1,2829 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f1117">
+<title>爬蟲教學 × 互動練習｜網路爬蟲從 0 到 1</title>
+<script>
+(function(){
+  var t = null;
+  try{ t = localStorage.getItem('scraper101-theme'); }catch(e){}
+  if(t !== 'light' && t !== 'dark'){
+    t = (window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
+  }
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕷️</text></svg>">
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#0f1117; --sidebar-bg:#161b22; --panel-bg:#1c2128; --panel:#161b22;
+  --border:#30363d; --border-soft:#21262d;
+  --text:#e6edf3; --text-muted:#8b949e; --text-soft:#cdd9e5;
+  --accent:#58a6ff; --accent-contrast:#0d1117; --accent-soft:rgba(88,166,255,.15);
+  --green:#3fb950; --green-soft:rgba(63,185,80,.15);
+  --red:#f85149; --red-soft:rgba(248,81,73,.14);
+  --orange:#ffa657; --orange-soft:rgba(255,166,87,.14);
+  --yellow:#d29922; --yellow-soft:rgba(210,153,34,.16); --purple:#bc8cff; --purple-soft:rgba(188,140,255,.12);
+  --code-bg:#0d1117; --code-ink:#e6edf3; --code-border:#30363d;
+  --tk-c:#8b949e; --tk-s:#a5d6ff; --tk-k:#ff7b72; --tk-n:#79c0ff;
+  --code-inline-bg:rgba(110,118,129,.22);
+  --hover-bg:rgba(255,255,255,.05); --strong-hover-bg:rgba(255,255,255,.09);
+  --surface-tint:rgba(255,255,255,.025);
+  --header-bg:rgba(22,27,34,.92);
+  --input-bg:#0d1117;
+  --shadow:0 1px 3px rgba(0,0,0,.4);
+  --scroll-thumb:#30363d;
+}
+html[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f6f8fa; --sidebar-bg:#ffffff; --panel-bg:#ffffff; --panel:#ffffff;
+  --border:#d0d7de; --border-soft:#e7ebef;
+  --text:#1f2328; --text-muted:#59636e; --text-soft:#3d444d;
+  --accent:#0969da; --accent-contrast:#ffffff; --accent-soft:rgba(9,105,218,.09);
+  --green:#1a7f37; --green-soft:rgba(26,127,55,.09);
+  --red:#cf222e; --red-soft:rgba(207,34,46,.08);
+  --orange:#bc4c00; --orange-soft:rgba(188,76,0,.09);
+  --yellow:#9a6700; --yellow-soft:rgba(154,103,0,.12); --purple:#8250df; --purple-soft:rgba(130,80,223,.08);
+  --code-bg:#eef1f4; --code-ink:#1f2328; --code-border:#d0d7de;
+  --tk-c:#6e7781; --tk-s:#0a3069; --tk-k:#cf222e; --tk-n:#0550ae;
+  --code-inline-bg:rgba(175,184,193,.2);
+  --hover-bg:rgba(31,35,40,.06); --strong-hover-bg:rgba(31,35,40,.1);
+  --surface-tint:rgba(31,35,40,.025);
+  --header-bg:rgba(255,255,255,.92);
+  --input-bg:#ffffff;
+  --shadow:0 1px 3px rgba(31,35,40,.12);
+  --scroll-thumb:#afb8c1;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.75;transition:background-color .15s ease,color .15s ease}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation-duration:.01ms!important}}
+::selection{background:var(--accent-soft)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--scroll-thumb);border-radius:6px}
+.hidden{display:none!important}
+
+/* ===== 頂部功能列 ===== */
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;padding:9px 20px;background:var(--header-bg);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
+.topbar .logo{font-weight:800;font-size:15.5px;white-space:nowrap}
+.topbar .hsub{font-size:12.5px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar .hright{margin-left:auto;display:flex;align-items:center;gap:8px}
+.theme-toggle{width:34px;height:32px;display:flex;align-items:center;justify-content:center;font-size:15px;background:transparent;border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--text)}
+.theme-toggle:hover{background:var(--hover-bg)}
+.theme-toggle:active{transform:translateY(1px)}
+
+/* ===== 版面 ===== */
+.app{display:flex;min-height:calc(100vh - 53px)}
+aside{width:280px;flex-shrink:0;background:var(--sidebar-bg);border-right:1px solid var(--border);position:sticky;top:53px;height:calc(100vh - 53px);overflow-y:auto;display:flex;flex-direction:column;padding:18px 14px}
+main{flex:1;padding:32px 40px 90px;min-width:0}
+.content{max-width:880px;margin:0 auto}
+
+.progress-wrap{margin:2px 0 16px}
+.progress-line{height:8px;background:var(--surface-tint);border:1px solid var(--border-soft);border-radius:99px;overflow:hidden}
+#progressBar{height:100%;width:0;background:var(--accent);border-radius:99px;transition:width .5s}
+.progress-row{display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-top:6px}
+#nav{display:flex;flex-direction:column;gap:3px;flex:1}
+.nav-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:transparent;border:none;color:var(--text-soft);padding:8px 10px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:13.5px;transition:background .15s}
+.nav-item:hover{background:var(--hover-bg)}
+.nav-item.cur{background:var(--accent-soft);color:var(--text)}
+.nav-item .ni-num{width:26px;height:26px;border-radius:6px;background:var(--surface-tint);border:1px solid var(--border-soft);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.nav-item.cur .ni-num{background:var(--accent);border-color:var(--accent);color:var(--accent-contrast)}
+.nav-item .ni-body{flex:1;display:flex;flex-direction:column;line-height:1.3}
+.nav-item .ni-mins{font-size:11px;color:var(--text-muted)}
+.nav-item .ni-check{opacity:0;color:var(--green);font-weight:700}
+.nav-item.done .ni-check{opacity:1}
+.side-foot{margin-top:14px;font-size:12px}
+.linklike{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px;font-family:inherit;padding:0}
+.linklike:hover{color:var(--text-soft)}
+
+/* ===== 章節 ===== */
+.chapter{display:none}
+.chapter.active{display:block;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.ch-head{margin-bottom:26px;padding-bottom:18px;border-bottom:1px solid var(--border)}
+.ch-meta{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.ch-num{display:inline-block;background:var(--accent);color:var(--accent-contrast);font-size:12px;font-weight:700;padding:3px 12px;border-radius:6px;letter-spacing:.5px}
+.ch-mins{font-size:12.5px;color:var(--text-muted)}
+.ch-head h2{font-size:28px;font-weight:800;line-height:1.35;letter-spacing:-.3px}
+.ch-goal{margin-top:12px;background:var(--accent-soft);border:1px solid var(--border);border-left:3px solid var(--accent);color:var(--text);padding:10px 16px;border-radius:6px;font-size:14.5px}
+.ch-foot{display:flex;gap:10px;justify-content:space-between;margin-top:40px;padding-top:22px;border-top:1px solid var(--border);flex-wrap:wrap}
+
+h3{font-size:19px;font-weight:800;margin:30px 0 12px;letter-spacing:-.2px}
+h4{font-size:15.5px;font-weight:700;margin:0 0 6px}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 14px 22px}
+li{margin-bottom:6px}
+a{color:var(--accent)}
+code{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;background:var(--code-inline-bg);padding:1px 6px;border-radius:6px;font-size:.88em}
+.prose b{color:var(--text)}
+
+.btn{font-family:inherit;font-size:14px;font-weight:600;border:none;border-radius:6px;padding:9px 18px;cursor:pointer;transition:transform .1s,background .15s,filter .15s}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:var(--accent);color:var(--accent-contrast)}
+.btn.primary:hover{filter:brightness(1.1)}
+.btn.ghost{background:transparent;color:var(--text-soft);border:1px solid var(--border)}
+.btn.ghost:hover{background:var(--hover-bg)}
+.btn.small{padding:5px 13px;font-size:13px}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.callout{border-radius:6px;padding:13px 17px;margin:16px 0;font-size:14.5px;border-left:4px solid;border:1px solid var(--border);border-left-width:4px}
+.callout.note{background:var(--accent-soft);border-left-color:var(--accent)}
+.callout.warn{background:var(--orange-soft);border-left-color:var(--orange)}
+.callout.tip{background:var(--green-soft);border-left-color:var(--green)}
+.callout.ethic{background:var(--purple-soft);border-left-color:var(--purple)}
+
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px;background:var(--panel-bg);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+th{background:var(--surface-tint);text-align:left;padding:9px 14px;font-size:13px;color:var(--text-soft)}
+td{padding:9px 14px;border-top:1px solid var(--border-soft);vertical-align:top}
+td code{white-space:nowrap}
+
+/* ===== 程式碼區塊 ===== */
+.codebox{margin:16px 0;border:1px solid var(--code-border);border-radius:6px;overflow:hidden}
+.codebox pre{margin:0;overflow-x:auto}
+pre.code,pre.net,pre.out{background:var(--code-bg);color:var(--code-ink);font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:13.5px;line-height:1.75;padding:15px 18px;white-space:pre;tab-size:4}
+pre.out{border-top:1px dashed var(--code-border);color:var(--green)}
+.runner-head{display:flex;align-items:center;gap:8px;background:var(--panel-bg);border-bottom:1px solid var(--border);padding:7px 14px}
+.runner-head .dots{display:flex;gap:6px}
+.runner-head .dots i{width:11px;height:11px;border-radius:50%;background:var(--border)}
+.runner-head .dots i:first-child{background:var(--red)}.runner-head .dots i:nth-child(2){background:var(--yellow)}.runner-head .dots i:last-child{background:var(--green)}
+.runner-head .fname{flex:1;color:var(--text-muted);font-family:ui-monospace,Menlo,monospace;font-size:12px}
+.run-btn{background:var(--accent);color:var(--accent-contrast);border:none;font-family:inherit;font-weight:700;font-size:12.5px;padding:4px 14px;border-radius:6px;cursor:pointer}
+.run-btn:hover{filter:brightness(1.1)}
+.run-btn:disabled{opacity:.6;cursor:wait}
+.tk-c{color:var(--tk-c);font-style:italic}
+.tk-s{color:var(--tk-s)}
+.tk-k{color:var(--tk-k)}
+.tk-n{color:var(--tk-n)}
+
+/* ===== 測驗 ===== */
+.quiz{background:var(--panel-bg);border:1px solid var(--border);border-radius:8px;padding:18px 20px;margin:18px 0}
+.quiz-title{font-weight:800;font-size:15px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.q{margin-bottom:18px;padding-bottom:16px;border-bottom:1px dashed var(--border)}
+.q:last-of-type{border-bottom:none}
+.q-text{font-weight:700;font-size:15px;margin-bottom:10px}
+.q-opts{display:flex;flex-direction:column;gap:7px}
+.q-opts button{text-align:left;font-family:inherit;font-size:14px;padding:9px 14px;border-radius:6px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);cursor:pointer;transition:all .15s}
+.q-opts button:hover{border-color:var(--accent);background:var(--accent-soft)}
+.q.done .q-opts button{cursor:default}
+.q.done .q-opts button:not(.correct){opacity:.55}
+.q-opts button.correct{background:var(--green-soft);border-color:var(--green);color:var(--green);font-weight:700;opacity:1!important}
+.q-opts button.wrong{background:var(--red-soft);border-color:var(--red);color:var(--red)}
+.q-feedback{display:none;margin-top:10px;font-size:13.5px;padding:9px 14px;border-radius:6px}
+.q-feedback.show{display:block}
+.q-feedback.good{background:var(--green-soft);color:var(--text)}
+.q-feedback.bad{background:var(--red-soft);color:var(--text)}
+.quiz-result{display:none;background:var(--green-soft);color:var(--green);font-weight:700;padding:11px 16px;border-radius:6px;margin-top:6px}
+.quiz-result.show{display:block}
+
+/* ===== 互動元件通用 ===== */
+.widget{background:var(--panel-bg);border:1px solid var(--border);border-radius:8px;padding:20px;margin:18px 0}
+.widget-title{font-weight:800;font-size:15px;margin-bottom:6px;display:flex;gap:8px;align-items:center}
+.widget-desc{font-size:13.5px;color:var(--text-muted);margin-bottom:14px}
+
+/* ===== HTTP 模擬器 ===== */
+.http-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.http-url{flex:1;min-width:220px;font-family:ui-monospace,Menlo,monospace;font-size:14px;padding:9px 14px;border:1px solid var(--border);border-radius:6px;background:var(--input-bg);color:var(--text)}
+.http-scenarios{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.http-scenario{font-family:inherit;font-size:13px;font-weight:600;border:1px solid var(--border);background:transparent;color:var(--text-soft);border-radius:6px;padding:5px 14px;cursor:pointer}
+.http-scenario:hover{background:var(--hover-bg)}
+.http-scenario.on{background:var(--accent);border-color:var(--accent);color:var(--accent-contrast)}
+.http-step{background:var(--panel-bg);border:1px solid var(--border);border-radius:6px;padding:10px 14px;margin-bottom:10px;font-size:14px;opacity:0;transform:translateY(6px);transition:all .35s}
+.http-step.in{opacity:1;transform:none}
+.http-step .net{margin-top:10px;border-radius:6px;font-size:12.5px}
+.http-step.verdict{font-weight:700}
+.http-step.verdict.st-good{background:var(--green-soft);border-color:var(--green)}
+.http-step.verdict.st-warn{background:var(--orange-soft);border-color:var(--orange)}
+.http-step.verdict.st-bad{background:var(--red-soft);border-color:var(--red)}
+
+/* ===== HTML 樹 ===== */
+.tree-wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.tree-pane h5{font-size:12.5px;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+#htmlSrc{background:var(--code-bg);color:var(--code-ink);border:1px solid var(--code-border);border-radius:6px;padding:16px;font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.8;overflow-x:auto;white-space:pre;tab-size:2}
+.tok{cursor:pointer;border-radius:4px;padding:1px 2px;transition:background .1s}
+.tok:hover{background:var(--strong-hover-bg)}
+#htmlTree{background:var(--panel-bg);border:1px solid var(--border);border-radius:6px;padding:16px;font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:2}
+.tn{cursor:pointer;border-radius:4px;padding:1px 8px}
+.tn:hover{background:var(--hover-bg)}
+.t-active{background:var(--yellow-soft)!important;color:var(--yellow);font-weight:700}
+#treeDesc{margin-top:14px;background:var(--accent-soft);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:12px 16px;font-size:14px;min-height:64px}
+
+/* ===== 選擇器遊樂場 ===== */
+.pg-toolbar{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+#selInput{flex:1;min-width:220px;font-family:ui-monospace,Menlo,monospace;font-size:15px;padding:10px 14px;border:1px solid var(--border);border-radius:6px;background:var(--input-bg);color:var(--text)}
+#selInput:focus{outline:none;border-color:var(--accent)}
+#selCount{font-weight:700;font-size:13.5px;background:var(--accent-soft);color:var(--accent);padding:7px 14px;border-radius:6px;white-space:nowrap}
+#selList{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:var(--text-muted);margin-bottom:14px;word-break:break-all;min-height:20px}
+#playground{border:1px dashed var(--border);border-radius:8px;padding:18px;background:var(--surface-tint);margin-bottom:18px}
+.pg-site{background:var(--panel-bg);border:1px solid var(--border);border-radius:6px;padding:16px 18px}
+.pg-site .site-header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.pg-site h1#logo{font-size:20px;color:var(--text)}
+.pg-site .menu{display:flex;gap:14px;font-size:13.5px}
+.pg-site .menu a{color:var(--accent);text-decoration:none;font-weight:600}
+.pg-note{font-size:12px;color:var(--text-muted);text-align:center;margin-top:10px}
+#playground .book{display:flex;gap:14px;align-items:baseline;border:1px solid var(--border-soft);border-radius:6px;padding:10px 14px;margin:8px 0;background:var(--panel-bg);flex-wrap:wrap}
+#playground .title{font-weight:700;font-size:15px;color:var(--text)}
+#playground .author{color:var(--text-muted);font-size:13px}
+#playground .price{margin-left:auto;font-weight:800;color:var(--accent);font-family:ui-monospace,Menlo,monospace}
+#playground .rank{border:1px solid var(--border-soft);border-radius:6px;padding:10px 14px;margin:8px 0;background:var(--panel-bg)}
+#playground .rank-title{font-size:14px;color:var(--text)}
+#playground .rank-list{margin:4px 0 0 22px;font-size:14px;color:var(--text-soft)}
+#playground .site-footer{text-align:center;color:var(--text-muted);font-size:12px;margin-top:12px}
+.sel-hit{outline:3px solid var(--orange)!important;outline-offset:2px;background:var(--orange-soft)!important;border-radius:4px}
+.challenge{border:1px solid var(--border);border-radius:6px;padding:12px 16px;margin-bottom:10px;background:var(--panel-bg)}
+.challenge.done{border-color:var(--green);background:var(--green-soft)}
+.ch-q{font-weight:700;font-size:14px;margin-bottom:8px;color:var(--text)}
+.ch-actions{display:flex;gap:8px}
+.ch-hint{font-size:13px;color:var(--text);background:var(--yellow-soft);padding:8px 12px;border-radius:6px;margin-top:8px}
+.ch-fb{display:none;font-size:13.5px;font-weight:600;margin-top:8px}
+.ch-fb.show{display:block}
+.ch-fb.good{color:var(--green)}
+.ch-fb.bad{color:var(--red)}
+#pgWin{margin-top:14px;background:var(--green-soft);border:1px solid var(--green);color:var(--green);font-weight:800;border-radius:6px;padding:13px 18px;text-align:center;font-size:15px}
+
+/* ===== 分頁模擬器 ===== */
+.pag-wrap{display:grid;grid-template-columns:1fr 1.1fr;gap:18px;align-items:start}
+#pagTable{width:100%;font-size:13.5px}
+#pagTable td,#pagTable th{padding:7px 12px}
+#pagStatus{background:var(--panel-bg);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:14px;margin-bottom:12px;min-height:44px}
+#pagLog{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;background:var(--code-bg);color:var(--green);border:1px solid var(--code-border);border-radius:6px;padding:12px 14px;min-height:88px;margin-top:12px}
+#pagLog div{margin:3px 0}
+#pagTable tbody tr{animation:rowIn .4s ease}
+@keyframes rowIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1}}
+
+/* ===== 格式預覽 ===== */
+.fmt-tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.fmt-btn{font-family:inherit;font-weight:700;font-size:13.5px;border:1px solid var(--border);background:transparent;color:var(--text-soft);border-radius:6px;padding:7px 18px;cursor:pointer}
+.fmt-btn:hover{background:var(--hover-bg)}
+.fmt-btn.on{background:var(--accent);color:var(--accent-contrast);border-color:var(--accent)}
+#fmtOut pre{border-radius:6px;font-size:13px}
+.xl{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;border-radius:6px;overflow:hidden}
+.xl th{background:#217346;color:#fff;font-weight:600}
+.xl td{border:1px solid var(--border)}
+.fmt-note{font-size:12.5px;color:var(--text-muted);margin-top:10px}
+
+/* ===== 動態網頁 ===== */
+.dyn-tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.dyn-tab{font-family:inherit;font-weight:700;font-size:13.5px;border:1px solid var(--border);background:transparent;color:var(--text-soft);border-radius:6px;padding:7px 18px;cursor:pointer}
+.dyn-tab:hover{background:var(--hover-bg)}
+.dyn-tab.on{background:var(--accent);color:var(--accent-contrast);border-color:var(--accent)}
+#paneDom .pg-site .product{display:flex;justify-content:space-between;border:1px solid var(--border-soft);border-radius:6px;padding:10px 14px;margin:8px 0;background:var(--panel-bg);color:var(--text)}
+#paneDom .product .price{font-weight:800;color:var(--accent);font-family:ui-monospace,Menlo,monospace}
+.flow{display:flex;flex-direction:column;gap:0;margin:16px 0}
+.flow-node{background:var(--panel-bg);border:1px solid var(--border);border-radius:6px;padding:12px 16px;font-size:14px;color:var(--text)}
+.flow-node b{color:var(--accent)}
+.flow-arrow{text-align:center;color:var(--text-muted);font-size:18px;padding:2px 0}
+
+/* ===== 步驟卡 / 指令列 ===== */
+.step-card{display:flex;gap:14px;background:var(--panel-bg);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:12px}
+.step-num{width:32px;height:32px;flex-shrink:0;border-radius:6px;background:var(--accent);color:var(--accent-contrast);display:flex;align-items:center;justify-content:center;font-weight:800}
+.cmd{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--code-bg);color:var(--code-ink);border:1px solid var(--code-border);border-radius:6px;padding:10px 14px;margin:10px 0;flex-wrap:wrap}
+.cmd code{background:transparent;color:var(--green);padding:0;font-size:13.5px}
+.copy-btn{font-family:inherit;font-size:12px;font-weight:700;border:1px solid var(--border);background:var(--panel-bg);color:var(--text-soft);border-radius:6px;padding:4px 12px;cursor:pointer;flex-shrink:0}
+.copy-btn:hover{background:var(--hover-bg)}
+
+/* ===== robots.txt ===== */
+.robots-wrap{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+
+/* ===== 解剖圖(URL / 請求行)===== */
+.anatomy{background:var(--code-bg);color:var(--code-ink);border:1px solid var(--code-border);border-radius:6px;padding:22px 18px;font-family:ui-monospace,Menlo,monospace;font-size:16px;line-height:2;text-align:center;word-break:break-all}
+.anatomy.left{text-align:left;font-size:14px}
+.anatomy .at{cursor:pointer;border-radius:4px;padding:2px 4px;border-bottom:2px dotted transparent;transition:all .12s}
+.anatomy .at:hover{background:var(--strong-hover-bg)}
+.at-scheme{color:var(--accent)}.at-host{color:var(--yellow)}.at-path{color:var(--green)}.at-query{color:var(--purple)}.at-frag{color:var(--orange)}
+.at.active{background:var(--strong-hover-bg);outline:1px solid var(--border)}
+.anatomy-desc{margin-top:12px;background:var(--accent-soft);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:12px 16px;font-size:14px;min-height:58px}
+
+/* ===== 配對遊戲 ===== */
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.match-col{display:flex;flex-direction:column;gap:8px}
+.match-chip{font-family:inherit;font-size:14px;font-weight:700;padding:9px 12px;border-radius:6px;border:1px solid var(--border);background:var(--panel-bg);color:var(--text);cursor:pointer;text-align:center;transition:all .15s}
+.match-chip:hover{border-color:var(--accent)}
+.match-chip.sel{border-color:var(--accent);background:var(--accent-soft)}
+.match-chip.lock{border-color:var(--green);background:var(--green-soft);color:var(--green);cursor:default}
+.match-chip.err{border-color:var(--red);background:var(--red-soft);animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+/* ===== 點點看遊戲 ===== */
+.mini-page{border:1px dashed var(--border);border-radius:8px;padding:16px;background:var(--panel-bg)}
+.mini-page h2{font-size:18px;margin-bottom:4px;color:var(--text)}
+.mini-page .slogan{color:var(--text-muted);font-size:13px;margin-bottom:12px}
+.mini-page .item{display:flex;justify-content:space-between;border:1px solid var(--border-soft);border-radius:6px;padding:10px 14px;margin:8px 0;color:var(--text)}
+.mini-page .item-price{font-family:ui-monospace,Menlo,monospace;color:var(--accent);font-weight:800}
+.mini-page .more{color:var(--accent);font-size:13.5px}
+.mg-el{cursor:pointer;border-radius:4px;transition:background .1s}
+.mg-el:hover{background:var(--yellow-soft)}
+.cg-round{font-weight:800;color:var(--text);background:var(--accent-soft);border:1px solid var(--border);border-radius:6px;padding:8px 14px;font-size:14px;margin-bottom:10px}
+.cg-fb{font-size:13.5px;font-weight:600;margin-top:10px;min-height:20px}
+.cg-fb.good{color:var(--green)}
+.cg-fb.bad{color:var(--red)}
+
+/* ===== 預測輸出:答對才揭曉 ===== */
+.q .reveal-out{display:none}
+.q.done .reveal-out{display:block}
+
+/* ===== Network 面板模擬器 ===== */
+.net-panel{background:var(--code-bg);border:1px solid var(--code-border);border-radius:6px;overflow:hidden;font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
+.net-head{display:flex;gap:10px;align-items:center;background:var(--surface-tint);border-bottom:1px solid var(--code-border);padding:7px 12px;color:var(--text-muted);font-size:11.5px}
+.net-head .ntab{padding:3px 10px;border-radius:4px}
+.net-head .ntab.on{background:var(--strong-hover-bg);color:var(--text)}
+.net-row{display:grid;grid-template-columns:2.2fr 1fr .8fr;gap:8px;padding:7px 14px;color:var(--text-soft);cursor:pointer;border-top:1px solid var(--border-soft)}
+.net-row:hover{background:var(--hover-bg)}
+.net-row.sel{background:var(--accent-soft)}
+.net-row .nr-type{color:var(--accent)}
+.net-row .nr-size{color:var(--text-muted);text-align:right}
+.net-preview{border-top:1px solid var(--code-border);padding:12px 14px}
+.net-preview pre{margin:0;font-family:ui-monospace,Menlo,monospace;font-size:12px;line-height:1.7;color:var(--green);white-space:pre-wrap}
+
+/* ===== 工具輸入框 ===== */
+.tool-input{flex:1;min-width:220px;font-size:14px;padding:9px 12px;border:1px solid var(--border);border-radius:6px;font-family:inherit;background:var(--input-bg);color:var(--text)}
+.tool-input:focus{outline:none;border-color:var(--accent)}
+
+/* ===== 自我檢查清單 ===== */
+.ck{display:flex;gap:10px;align-items:flex-start;padding:8px 12px;border-radius:6px;font-size:14px;cursor:pointer;transition:background .15s;color:var(--text)}
+.ck:hover{background:var(--hover-bg)}
+.ck input{width:16px;height:16px;margin-top:4px;flex-shrink:0;accent-color:var(--green)}
+.ck:has(input:checked){background:var(--green-soft)}
+.ck-result{font-weight:800;color:var(--text-soft);background:var(--surface-tint);border:1px solid var(--border-soft);border-radius:6px;padding:9px 14px;margin-top:8px;font-size:14px}
+
+/* ===== 本章重點回顧 ===== */
+.recap{display:flex;flex-wrap:wrap;gap:8px;margin:26px 0 14px;align-items:center;background:var(--panel-bg);border:1px solid var(--border);border-radius:8px;padding:13px 16px}
+.recap .r-label{font-weight:800;font-size:13px;color:var(--text-soft)}
+.recap .r-chip{background:var(--accent-soft);border:1px solid var(--border);color:var(--accent);font-size:12.5px;font-weight:600;padding:4px 12px;border-radius:99px}
+
+/* ===== 畢業專題拼裝台 ===== */
+.asm-slots{background:var(--code-bg);color:var(--code-ink);border:1px solid var(--code-border);border-radius:6px;padding:12px 14px;min-height:120px;font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.9;margin-bottom:12px}
+.asm-slots .slot-line{color:var(--code-ink);white-space:pre-wrap;word-break:break-all}
+.asm-slots .slot-line b{color:var(--text-muted);font-weight:400;margin-right:10px}
+.asm-slots .slot-empty{color:var(--text-muted);font-size:12px}
+.asm-pool{display:flex;flex-direction:column;gap:6px}
+.asm-pool button{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;text-align:left;padding:8px 12px;border-radius:6px;border:1px solid var(--border);background:var(--panel-bg);color:var(--text);cursor:pointer;transition:all .15s;white-space:pre-wrap;word-break:break-all}
+.asm-pool button:hover{border-color:var(--accent);background:var(--accent-soft)}
+.asm-pool button.gone{opacity:0;pointer-events:none;transform:scale(.96)}
+.asm-actions{margin-top:10px;display:flex;gap:8px}
+
+/* ===== 摺疊選讀 ===== */
+details.deep{border:1px solid var(--border);border-radius:6px;margin-bottom:10px;background:var(--panel-bg);overflow:hidden}
+details.deep summary{cursor:pointer;font-weight:700;font-size:14.5px;padding:12px 16px;list-style:none;display:flex;align-items:center;gap:8px;color:var(--text)}
+details.deep summary::-webkit-details-marker{display:none}
+details.deep summary::before{content:'▸';color:var(--accent);transition:transform .2s}
+details.deep[open] summary::before{transform:rotate(90deg)}
+details.deep summary:hover{background:var(--hover-bg)}
+.deep-body{padding:2px 16px 14px;font-size:14px;color:var(--text)}
+.deep-body pre.code{border-radius:6px;font-size:12.5px;margin:10px 0}
+
+/* ===== 結業證書 ===== */
+#finalScore{display:none;font-size:20px;font-weight:800;text-align:center;margin:16px 0;color:var(--text)}
+#finalScore.show{display:block}
+#finalScore b{font-size:30px;color:var(--accent)}
+.cert{background:linear-gradient(135deg,var(--yellow-soft),transparent);border:3px double var(--yellow);border-radius:8px;padding:30px;text-align:center;margin:18px 0;max-width:520px}
+.cert-badge{font-size:52px}
+.cert h3{margin:8px 0;font-size:22px;color:var(--yellow)}
+.cert-name{font-size:26px;font-weight:800;color:var(--text);border-bottom:2px solid var(--yellow);display:inline-block;padding:2px 24px 6px;margin:10px 0 14px}
+.cert-meta{font-size:13.5px;color:var(--text-muted)}
+.cert-foot{margin-top:16px;font-size:11.5px;color:var(--text-muted);letter-spacing:1px}
+.confetti-piece{position:fixed;top:-16px;width:10px;height:16px;z-index:9999;pointer-events:none;animation:confFall linear forwards}
+@keyframes confFall{to{transform:translateY(110vh) rotate(720deg)}}
+
+/* ===== Toast ===== */
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:#1f2328;color:#e6edf3;border:1px solid #30363d;padding:10px 22px;border-radius:6px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:all .3s;z-index:999}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ===== 響應式 ===== */
+@media (max-width:960px){
+  .app{flex-direction:column;min-height:auto}
+  aside{position:static;width:auto;height:auto;flex-direction:column;padding:12px 14px;border-right:none;border-bottom:1px solid var(--border)}
+  #nav{flex-direction:row;overflow-x:auto;padding-bottom:6px}
+  .nav-item{flex-shrink:0;width:auto}
+  .nav-item .ni-mins{display:none}
+  main{padding:24px 18px 70px}
+  .tree-wrap,.pag-wrap,.robots-wrap{grid-template-columns:1fr}
+  .ch-head h2{font-size:23px}
+  .topbar .hsub{display:none}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="logo">🕷️ 爬蟲教學 × 互動練習</div>
+  <div class="hsub">網路爬蟲從 0 到 1 · 10 章 · 全互動</div>
+  <div class="hright">
+    <button id="themeToggle" class="theme-toggle" title="切換深色 / 淺色主題" aria-label="切換主題">🌙</button>
+  </div>
+</header>
+<div class="app">
+
+<!-- ===================== 側邊欄 ===================== -->
+<aside>
+  <div class="progress-wrap">
+    <div class="progress-line"><div id="progressBar"></div></div>
+    <div class="progress-row"><span>學習進度</span><span id="progressText">0%</span></div>
+  </div>
+  <nav id="nav">
+    <button class="nav-item" data-ch="0"><span class="ni-num">0</span><span class="ni-body"><span class="ni-title">歡迎與環境準備</span><span class="ni-mins">約 8 分鐘</span></span><span class="ni-check">✓</span></button>
+    <button class="nav-item" data-ch="1"><span class="ni-num">1</span><span class="ni-body"><span class="ni-title">HTTP:爬蟲的地下鐵</span><span class="ni-mins">約 10 分鐘</span></span><span class="ni-check">✓</span></button>
+    <button class="nav-item" data-ch="2"><span class="ni-num">2</span><span class="ni-body"><span class="ni-title">HTML:網頁的骨架</span><span class="ni-mins">約 10 分鐘</span></span><span class="ni-check">✓</span></button>
+    <button class="nav-item" data-ch="3"><span class="ni-num">3</span><span class="ni-body"><span class="ni-title">CSS 選擇器:精準定位</span><span class="ni-mins">約 15 分鐘</span></span><span class="ni-check">✓</span></button>
+    <button class="nav-item" data-ch="4"><span class="ni-num">4</span><span class="ni-body"><span class="ni-title">第一支爬蟲誕生</span><span class="ni-mins">約 12 分鐘</span></span><span class="ni-check">✓</span></button>
+    <button class="nav-item" data-ch="5"><span class="ni-num">5</span><span class="ni-body"><span class="ni-title">實戰:分頁爬取</span><span class="ni-mins">約 10 分鐘</span></span><span class="ni-check">✓</span></button>
+    <button class="nav-item" data-ch="6"><span class="ni-num">6</span><span class="ni-body"><span class="ni-title">把資料存下來</span><span class="ni-mins">約 8 分鐘</span></span><span class="ni-check">✓</span></button>
+    <button class="nav-item" data-ch="7"><span class="ni-num">7</span><span class="ni-body"><span class="ni-title">動態網頁怎麼辦</span><span class="ni-mins">約 10 分鐘</span></span><span class="ni-check">✓</span></button>
+    <button class="nav-item" data-ch="8"><span class="ni-num">8</span><span class="ni-body"><span class="ni-title">爬蟲禮儀與自保</span><span class="ni-mins">約 8 分鐘</span></span><span class="ni-check">✓</span></button>
+    <button class="nav-item" data-ch="9"><span class="ni-num">🎓</span><span class="ni-body"><span class="ni-title">結業測驗與證書</span><span class="ni-mins">約 15 分鐘</span></span><span class="ni-check">✓</span></button>
+  </nav>
+  <div class="side-foot">
+    <button id="resetProgress" class="linklike">🔄 清除進度,重新開始</button>
+  </div>
+</aside>
+
+<!-- ===================== 主內容 ===================== -->
+<main><div class="content">
+
+<!-- ============ 第 0 章 ============ -->
+<section class="chapter" data-ch="0">
+  <header class="ch-head">
+    <div class="ch-meta"><span class="ch-num">Chapter 0</span><span class="ch-mins">⏱ 約 8 分鐘</span></div>
+    <h2>🕷️ 歡迎來到爬蟲的世界</h2>
+    <p class="ch-goal">🎯 這章你會學到:搞懂爬蟲是什麼、能做什麼,並把環境準備好,之後就能一路實戰。</p>
+  </header>
+
+  <h3>什麼是網路爬蟲?</h3>
+  <div class="prose">
+    <p><b>網路爬蟲(Web Scraper / Crawler)</b>是一支自動拜訪網頁、讀取內容、並把你要的資料「摘」下來整理好的程式。</p>
+    <p>打個比方:你想知道 10 個購物網站的某款耳機價格。手動做法是——開 10 個分頁、逐頁找到價格、複製、貼進 Excel、再下一個……爬蟲的做法是——你告訴它「去這 10 個網址,找到價格數字,存成表格」,然後去泡杯咖啡,回來資料就好了。網站從 10 個變 1000 個,它也不會喊累。</p>
+  </div>
+
+  <h3>你每天都在享受爬蟲的成果</h3>
+  <table>
+    <tr><th>服務</th><th>背後的爬蟲在做什麼</th></tr>
+    <tr><td>Google 搜尋</td><td>爬蟲(Googlebot)日夜爬遍全網,建立搜尋索引</td></tr>
+    <tr><td>比價網站</td><td>定期爬各大電商,更新商品價格</td></tr>
+    <tr><td>新聞聚合 App</td><td>爬各家新聞網站,匯集標題與摘要</td></tr>
+    <tr><td>AI 語言模型</td><td>用大量爬來的網頁文字當訓練材料</td></tr>
+    <tr><td>房價分析、輿情分析</td><td>爬公開資料做統計與研究</td></tr>
+  </table>
+
+  <div class="callout warn">⚠️ <b>先講最重要的一件事:</b>爬蟲是中性的工具,但「爬什麼、爬多快、拿去做什麼」有分寸。公開資料、低頻率、註明來源,通常是安全的;個資、需付費登入的內容、大量轉售,是紅線。第 8 章我們會把禮儀與法律界線一次講清楚。</div>
+
+  <h3>這門課的路線圖</h3>
+  <ol>
+    <li><b>第 1 章</b> HTTP —— 爬蟲和網站怎麼對話(看懂 200、404、429)</li>
+    <li><b>第 2 章</b> HTML —— 網頁的骨架,資料藏在哪裡</li>
+    <li><b>第 3 章</b> CSS 選擇器 —— 精準指出你要的資料(互動遊樂場!)</li>
+    <li><b>第 4 章</b> requests + BeautifulSoup —— 寫出第一支爬蟲</li>
+    <li><b>第 5 章</b> 分頁實戰 —— 從一頁到一千頁</li>
+    <li><b>第 6 章</b> 存檔 —— CSV / JSON / Excel</li>
+    <li><b>第 7 章</b> 動態網頁 —— JavaScript 渲染的內容怎麼抓</li>
+    <li><b>第 8 章</b> 禮儀與反爬 —— 當一個受歡迎的爬蟲</li>
+    <li><b>結業</b> 綜合測驗,拿證書 🎓</li>
+  </ol>
+
+  <h3>如何使用這份教學</h3>
+  <ul>
+    <li>用<b>左側選單</b>或每章底部的按鈕切換章節,進度自動存在瀏覽器裡。</li>
+    <li>每章都有<b>可以動手玩的互動元件</b>——真的去點、去輸入,比只看文字有效十倍。</li>
+    <li>每章結尾有小測驗,<b>全部答對會自動打勾</b>(趕時間也可以直接按「標記完成」)。</li>
+    <li>程式碼範例的「▶ 執行」會模擬真實輸出,讓你先看到結果再自己跑。</li>
+  </ul>
+
+  <h3>環境準備(10 分鐘)</h3>
+  <div class="widget">
+    <div class="widget-title">🛠️ 三步驟就緒</div>
+    <div class="widget-desc">跟著做,之後每章的程式碼你都能直接複製去跑。</div>
+    <div class="step-card">
+      <div class="step-num">1</div>
+      <div>
+        <h4>安裝 Python 3.10+</h4>
+        <p>到 <a href="https://www.python.org/downloads/" target="_blank" rel="noopener">python.org/downloads</a> 下載安裝(Windows 記得勾選「Add Python to PATH」)。<br>完全不想裝?先在瀏覽器用 <a href="https://colab.research.google.com" target="_blank" rel="noopener">Google Colab</a> 跟著玩也可以。</p>
+        <div class="cmd"><code>python --version</code><button class="copy-btn" data-copy="python --version">複製</button></div>
+      </div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">2</div>
+      <div>
+        <h4>安裝爬蟲兩大神器</h4>
+        <p><code>requests</code> 負責上網抓網頁,<code>beautifulsoup4</code> 負責解析 HTML(第 4 章正式登場)。</p>
+        <div class="cmd"><code>pip install requests beautifulsoup4</code><button class="copy-btn" data-copy="pip install requests beautifulsoup4">複製</button></div>
+      </div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">3</div>
+      <div>
+        <h4>建立練習資料夾</h4>
+        <p>建一個 <code>scraper101</code> 資料夾,用 VS Code(或任何編輯器)打開,之後每章的 <code>.py</code> 檔都放這裡。準備好了就按右下角前進!</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>爬蟲、手動、官方 API,怎麼選?</h3>
+  <p>拿到任務先別急著寫爬蟲——比一比三條路,常常有更省力的選擇:</p>
+  <table>
+    <tr><th>方式</th><th>速度</th><th>適合場景</th><th>門檻</th></tr>
+    <tr><td>手動複製貼上</td><td>🐢 慢,不可重複</td><td>一次性、只有幾筆資料</td><td>零</td></tr>
+    <tr><td><b>寫爬蟲</b></td><td>🚀 快、可重複執行</td><td>定期更新、資料量大、網站沒有提供 API</td><td>會一點 Python</td></tr>
+    <tr><td>官方 API</td><td>🚀 快、最穩定</td><td>網站有提供時的<b>第一選擇</b>(政府開放資料、YouTube API…)</td><td>讀文件、申請金鑰</td></tr>
+  </table>
+  <div class="callout tip">📌 職業習慣:動手爬之前,先搜尋「網站名 + API」或「網站名 + 開放資料」。有官方 API 就別爬 HTML——更穩、更快、也更不會踩到界線。</div>
+
+  <h3>開始前的 60 秒自我檢查</h3>
+  <div class="widget">
+    <div class="widget-title">✅ 勾勾看,缺什麼補什麼</div>
+    <div class="widget-desc">不需要全會,但勾得越多,之後學得越順。這門課只需要「一點點」Python 基礎。</div>
+    <div id="checklist">
+      <label class="ck"><input type="checkbox"> 我會安裝軟體,也知道「終端機 / 命令提示字元」怎麼打開</label>
+      <label class="ck"><input type="checkbox"> 我知道什麼是「變數」和「字串」</label>
+      <label class="ck"><input type="checkbox"> 我寫過 if 判斷和 for 迴圈(任何語言都算)</label>
+      <label class="ck"><input type="checkbox"> 我(即將)會用 pip 安裝套件</label>
+      <label class="ck"><input type="checkbox"> 我願意遇到錯誤訊息時,把訊息讀完、再搜尋一下</label>
+      <div class="ck-result">已勾 0 / 5</div>
+    </div>
+  </div>
+
+  <div class="recap"><span class="r-label">📌 本章重點</span><span class="r-chip">爬蟲 = 自動抓網頁資料的程式</span><span class="r-chip">有官方 API 就不用爬 HTML</span><span class="r-chip">開爬之前先看 robots.txt</span><span class="r-chip">pip install requests beautifulsoup4</span></div>
+
+  <div class="quiz" data-autocomplete="1">
+    <div class="quiz-title">🧠 小測驗 · 第 0 章</div>
+    <div class="q" data-explain="爬蟲的核心是「自動化」——手動複製貼上剛好是完全不自動的版本 😄">
+      <p class="q-text">1. 下列哪一個「不是」爬蟲的典型用途?</p>
+      <div class="q-opts">
+        <button data-ok="0">搜尋引擎建立網頁索引</button>
+        <button data-ok="1">你自己手動複製貼上資料</button>
+        <button data-ok="0">比價網站蒐集各家電商價格</button>
+        <button data-ok="0">蒐集大量文字訓練 AI 模型</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain="robots.txt 是網站對爬蟲公開說的規矩。先看它,既是禮貌,也是自保。">
+      <p class="q-text">2. 開始爬一個網站之前,第一件該做的事是?</p>
+      <div class="q-opts">
+        <button data-ok="0">直接開爬,速度就是一切</button>
+        <button data-ok="0">把整個網站的所有頁面先下載下來再說</button>
+        <button data-ok="1">先看看 robots.txt 與網站的服務條款</button>
+        <button data-ok="0">多開幾個視窗一起爬比較快</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="quiz-result"></div>
+  </div>
+
+  <footer class="ch-foot">
+    <button class="btn ghost hidden" data-nav="prev">← 上一章</button>
+    <button class="btn primary complete-btn" data-ch="0">✓ 標記完成,前往下一章</button>
+    <button class="btn primary" data-nav="next">下一章 →</button>
+  </footer>
+</section>
+
+<!-- ============ 第 1 章 ============ -->
+<section class="chapter" data-ch="1">
+  <header class="ch-head">
+    <div class="ch-meta"><span class="ch-num">Chapter 1</span><span class="ch-mins">⏱ 約 10 分鐘</span></div>
+    <h2>🚇 HTTP:爬蟲的地下鐵</h2>
+    <p class="ch-goal">🎯 這章你會學到:看懂「請求 → 回應」的對話,讀懂狀態碼,並親手發出你的第一個模擬 HTTP 請求。</p>
+  </header>
+
+  <h3>瀏覽器是怎麼看到網頁的?</h3>
+  <div class="prose">
+    <p>當你在網址列輸入網址按下 Enter,背後發生的事是:</p>
+    <ol>
+      <li>瀏覽器向伺服器發出一個 <b>HTTP 請求(Request)</b>:「請給我這個網址的內容」</li>
+      <li>伺服器回一個 <b>HTTP 回應(Response)</b>:狀態碼 + HTML 文件</li>
+      <li>瀏覽器把 HTML「畫」成你看到的漂亮網頁</li>
+    </ol>
+    <p><b>爬蟲做的事一模一樣,只是省略第 3 步</b>——不要漂亮的畫面,只要原始的 HTML 資料。理解了這一點,你就已經懂爬蟲的一半了。</p>
+  </div>
+
+  <div class="widget">
+    <div class="widget-title">🎮 互動:HTTP 請求模擬器</div>
+    <div class="widget-desc">選一個情境,按「發送請求」,看看程式和伺服器之間到底傳了什麼。<b>彩蛋:試著在 10 秒內連按 6 次「發送請求」!</b></div>
+    <div class="http-scenarios">
+      <button class="http-scenario on" data-sc="ok">✅ 正常頁面</button>
+      <button class="http-scenario" data-sc="page2">📄 第 2 頁</button>
+      <button class="http-scenario" data-sc="notfound">🚫 不存在的頁面</button>
+      <button class="http-scenario" data-sc="forbidden">🛡️ 被網站拒絕</button>
+    </div>
+    <div class="http-bar">
+      <input class="http-url" id="httpUrl" value="https://example.com/books" readonly>
+      <button class="btn primary" id="httpSend">🚀 發送請求</button>
+      <button class="btn ghost" id="httpReset">清空</button>
+    </div>
+    <div id="httpLog"></div>
+    <div id="httpTip" class="callout warn hidden">😉 看到了嗎?你請求得太快,伺服器直接回了 <b>429 Too Many Requests</b> 把你擋下來。這就是真實網站對付粗魯爬蟲的方式——第 8 章會教你怎麼當個有禮貌的爬蟲。</div>
+  </div>
+
+  <h3>解剖一個網址</h3>
+  <p>爬蟲的第一步是「看懂網址」——分頁、搜尋關鍵字、排序全都藏在網址裡:</p>
+  <div class="widget">
+    <div class="widget-title">🎮 互動:網址解剖圖</div>
+    <div class="widget-desc">點網址的每一個部位,看看它負責什麼。</div>
+    <div class="anatomy" id="urlAnatomy"><span class="at at-scheme" data-a="scheme">https://</span><span class="at at-host" data-a="host">example.com</span><span class="at at-path" data-a="path">/books</span><span class="at at-query" data-a="query">?page=2&amp;sort=price</span><span class="at at-frag" data-a="frag">#reviews</span></div>
+    <div class="anatomy-desc" id="urlAnatomyDesc">👆 點上面任一部分,這裡會解說。</div>
+  </div>
+
+  <h3>解剖一封請求</h3>
+  <div class="widget">
+    <div class="widget-title">🎮 互動:HTTP 請求解剖圖</div>
+    <div class="widget-desc">這是爬蟲每次出門隨身帶的「介紹信」。點每一行,看它的作用。</div>
+    <div class="anatomy left" id="reqAnatomy">
+      <div><span class="at at-host" data-a="reqline">GET /books HTTP/1.1</span></div>
+      <div><span class="at at-scheme" data-a="host2">Host: example.com</span></div>
+      <div><span class="at at-path" data-a="ua">User-Agent: Mozilla/5.0 …</span></div>
+      <div><span class="at at-query" data-a="accept">Accept: text/html</span></div>
+      <div><span class="at at-frag" data-a="cookie">Cookie: session=abc123</span></div>
+    </div>
+    <div class="anatomy-desc" id="reqAnatomyDesc">👆 點上面任一行,這裡會解說。</div>
+  </div>
+
+  <h3>讀懂狀態碼:伺服器的心情符號</h3>
+  <p>狀態碼是回應的第一行,三個數字濃縮了伺服器想說的話:</p>
+  <table>
+    <tr><th>狀態碼</th><th>名字</th><th>意思</th><th>爬蟲該怎麼辦</th></tr>
+    <tr><td><code>200</code></td><td>OK</td><td>成功,資料在這</td><td>放心解析 🎉</td></tr>
+    <tr><td><code>301 / 302</code></td><td>Redirect</td><td>搬到新網址了</td><td>requests 會自動跟著走</td></tr>
+    <tr><td><code>403</code></td><td>Forbidden</td><td>拒絕你存取(常見於爬蟲被認出)</td><td>檢查 User-Agent、放慢速度</td></tr>
+    <tr><td><code>404</code></td><td>Not Found</td><td>網址不存在</td><td>檢查 URL,跳過或記錄</td></tr>
+    <tr><td><code>429</code></td><td>Too Many Requests</td><td>你太快了,被限流</td><td>休息(看 Retry-After),降低頻率</td></tr>
+    <tr><td><code>500</code></td><td>Server Error</td><td>伺服器自己出錯</td><td>稍後重試</td></tr>
+  </table>
+  <div class="callout tip">📌 記憶法:<b>2xx</b> 成功、<b>3xx</b> 轉址、<b>4xx</b> 是「你」的問題、<b>5xx</b> 是「伺服器」的問題。</div>
+
+  <div class="widget">
+    <div class="widget-title">🎮 互動:狀態碼連連看</div>
+    <div class="widget-desc">點一個狀態碼,再點它的意思。六組全部配對成功就過關!</div>
+    <div class="match-wrap" id="matchGame">
+      <div class="match-col">
+        <button class="match-chip" data-pair="200">200</button>
+        <button class="match-chip" data-pair="301">301</button>
+        <button class="match-chip" data-pair="403">403</button>
+        <button class="match-chip" data-pair="404">404</button>
+        <button class="match-chip" data-pair="429">429</button>
+        <button class="match-chip" data-pair="500">500</button>
+      </div>
+      <div class="match-col">
+        <button class="match-chip" data-pair="429">請求太頻繁,被限流了</button>
+        <button class="match-chip" data-pair="200">成功,內容在回應裡</button>
+        <button class="match-chip" data-pair="500">伺服器自己出錯了</button>
+        <button class="match-chip" data-pair="404">查無此頁</button>
+        <button class="match-chip" data-pair="403">拒絕你存取</button>
+        <button class="match-chip" data-pair="301">網頁搬家到新網址</button>
+      </div>
+    </div>
+    <div class="cg-fb" id="matchFb"></div>
+  </div>
+
+  <h3>GET 與 POST</h3>
+  <table>
+    <tr><th></th><th>GET</th><th>POST</th></tr>
+    <tr><td>用途</td><td><b>取得</b>資料(爬蟲 95% 用這個)</td><td><b>送出</b>資料(登入、表單、搜尋)</td></tr>
+    <tr><td>參數位置</td><td>網址後面 <code>?page=2&amp;q=python</code></td><td>藏在請求內容裡</td></tr>
+    <tr><td>爬蟲場景</td><td>抓列表、抓內容頁</td><td>登入後才看得到的頁面</td></tr>
+  </table>
+  <div class="callout note">💡 <b>User-Agent 是什麼?</b>請求裡的一行自我介紹,告訴伺服器「我是誰」。瀏覽器的 UA 像一本護照;而 requests 預設的 UA 會老實說「我是 python-requests」——有些網站一看就把你列入黑名單(還記得剛才的 403 情境嗎?)。第 4 章開始我們都會帶著 UA 出門。</div>
+
+  <div class="recap"><span class="r-label">📌 本章重點</span><span class="r-chip">爬蟲 = 請求 + 回應,跳過渲染</span><span class="r-chip">2xx 成功、4xx 你的錯、5xx 伺服器的錯</span><span class="r-chip">分頁規律藏在 ?page=</span><span class="r-chip">User-Agent 是你的名片</span></div>
+
+  <div class="quiz" data-autocomplete="1">
+    <div class="quiz-title">🧠 小測驗 · 第 1 章</div>
+    <div class="q" data-explain="2xx 開頭都是成功,200 是最常見的「一切正常」。">
+      <p class="q-text">1. 收到狀態碼 200 代表?</p>
+      <div class="q-opts">
+        <button data-ok="0">伺服器內部錯誤</button>
+        <button data-ok="1">請求成功,內容在回應裡</button>
+        <button data-ok="0">網頁搬到新網址了</button>
+        <button data-ok="0">你被限流了</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain="403 Forbidden =「我知道你要什麼,但不給你」。404 才是網址錯誤。">
+      <p class="q-text">2. 狀態碼 403 最可能的原因是?</p>
+      <div class="q-opts">
+        <button data-ok="0">網址打錯字</button>
+        <button data-ok="0">伺服器當機</button>
+        <button data-ok="1">伺服器拒絕讓你存取(例如爬蟲身分被認出)</button>
+        <button data-ok="0">頁面成功回傳</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain="429 是伺服器在說「你太快了」。照 Retry-After 休息、放慢頻率才是正解。">
+      <p class="q-text">3. 伺服器一直回 429 Too Many Requests,正確做法是?</p>
+      <div class="q-opts">
+        <button data-ok="0">加快請求速度,搶在封鎖前抓完</button>
+        <button data-ok="0">改用 POST 就不會被擋</button>
+        <button data-ok="1">降低頻率,照 Retry-After 等待</button>
+        <button data-ok="0">換一台電腦繼續</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="quiz-result"></div>
+  </div>
+
+  <footer class="ch-foot">
+    <button class="btn ghost" data-nav="prev">← 上一章</button>
+    <button class="btn primary complete-btn" data-ch="1">✓ 標記完成,前往下一章</button>
+    <button class="btn primary" data-nav="next">下一章 →</button>
+  </footer>
+</section>
+
+<!-- ============ 第 2 章 ============ -->
+<section class="chapter" data-ch="2">
+  <header class="ch-head">
+    <div class="ch-meta"><span class="ch-num">Chapter 2</span><span class="ch-mins">⏱ 約 10 分鐘</span></div>
+    <h2>🦴 HTML:網頁的骨架</h2>
+    <p class="ch-goal">🎯 這章你會學到:看懂標籤、屬性、巢狀結構,知道資料「藏」在網頁的什麼地方。</p>
+  </header>
+
+  <div class="prose">
+    <p>爬蟲拿到的 HTML 長得像這樣——一堆角括號。別慌,它其實只是<b>一棵家譜樹</b>:</p>
+  </div>
+
+  <pre class="codebox net">&lt;div class="book"&gt;            ← 開標籤(tag),class 是「屬性」
+  &lt;h3 class="title"&gt;銀河帝國&lt;/h3&gt;   ← 文字內容:銀河帝國
+  &lt;p class="price"&gt;$320&lt;/p&gt;
+&lt;/div&gt;                        ← 對應的關標籤</pre>
+
+  <table>
+    <tr><th>常見標籤</th><th>用途</th><th>爬蟲視角</th></tr>
+    <tr><td><code>&lt;div&gt;</code> <code>&lt;span&gt;</code></td><td>萬用容器,分組用</td><td>最常見的「資料盒子」</td></tr>
+    <tr><td><code>&lt;h1&gt;</code>~<code>&lt;h6&gt;</code></td><td>標題</td><td>文章標題常在這</td></tr>
+    <tr><td><code>&lt;p&gt;</code></td><td>段落</td><td>內文、描述</td></tr>
+    <tr><td><code>&lt;a href="..."&gt;</code></td><td>連結</td><td>爬到新頁面的入口!</td></tr>
+    <tr><td><code>&lt;table&gt;&lt;tr&gt;&lt;td&gt;</code></td><td>表格</td><td>表格型資料的寶庫</td></tr>
+    <tr><td><code>&lt;img src="..."&gt;</code></td><td>圖片</td><td>要抓圖就找 src 屬性</td></tr>
+  </table>
+
+  <div class="callout tip">📌 <b>class vs id:</b>class 像「班級」,一頁可以有很多個 .book、.price;id 像「身分證字號」,整頁唯一。爬蟲 90% 的定位都靠 class。</div>
+
+  <h3>家譜術語:爬蟲的方位語言</h3>
+  <p>HTML 是一棵樹,所以文件和教學描述位置時都用「家人的稱呼」。先記住這四個詞,第 3 章的選擇器會立刻變得直覺:</p>
+  <table>
+    <tr><th>術語</th><th>意思</th><th>在書店範例中</th></tr>
+    <tr><td>父元素(parent)</td><td>直接上一層</td><td><code>div.book</code> 是 <code>h3</code> 的爸爸</td></tr>
+    <tr><td>子元素(child)</td><td>直接下一層</td><td><code>h3</code>、<code>p</code> 是 <code>div.book</code> 的孩子</td></tr>
+    <tr><td>後代(descendant)</td><td>下面任何一層(兒子、孫子…)</td><td><code>h3</code> 是 <code>body</code> 的後代</td></tr>
+    <tr><td>兄弟(sibling)</td><td>同一層、同一個爸爸</td><td><code>h3</code> 和 <code>p</code> 互為兄弟</td></tr>
+  </table>
+  <div class="callout note">💡 這些方位直接對應下一章的選擇器語法:<b>空格 = 找後代</b>(任何深度),<b>&gt; = 只找直接子層</b>。聽懂家譜,選擇器就通了。</div>
+
+  <div class="widget">
+    <div class="widget-title">🎮 互動:HTML 家譜樹探索器</div>
+    <div class="widget-desc">點左邊原始碼裡的任何標籤,或點右邊樹狀圖的節點——兩邊會互相照亮,下方告訴你它在爬蟲眼裡是什麼。</div>
+    <div class="tree-wrap">
+      <div class="tree-pane">
+        <h5>網頁原始碼(點我!)</h5>
+        <pre id="htmlSrc"><span class="tok" data-t="html">&lt;html&gt;</span>
+  <span class="tok" data-t="head">&lt;head&gt;</span>
+    <span class="tok" data-t="title">&lt;title&gt;</span>書蟲書店<span class="tok" data-t="title">&lt;/title&gt;</span>
+  <span class="tok" data-t="head">&lt;/head&gt;</span>
+  <span class="tok" data-t="body">&lt;body&gt;</span>
+    <span class="tok" data-t="div">&lt;div class="book"&gt;</span>
+      <span class="tok" data-t="h3">&lt;h3 class="title"&gt;</span>銀河帝國<span class="tok" data-t="h3">&lt;/h3&gt;</span>
+      <span class="tok" data-t="p">&lt;p class="price"&gt;</span>$320<span class="tok" data-t="p">&lt;/p&gt;</span>
+    <span class="tok" data-t="div">&lt;/div&gt;</span>
+  <span class="tok" data-t="body">&lt;/body&gt;</span>
+<span class="tok" data-t="html">&lt;/html&gt;</span></pre>
+      </div>
+      <div class="tree-pane">
+        <h5>DOM 樹(點我!)</h5>
+        <div id="htmlTree">
+          <div class="tn" data-t="html">🌐 html</div>
+          <div class="tn" data-t="head">&nbsp;├─ 📄 head</div>
+          <div class="tn" data-t="title">&nbsp;│&nbsp;&nbsp; └─ 📝 &lt;title&gt; → 「書蟲書店」</div>
+          <div class="tn" data-t="body">&nbsp;└─ 📄 body</div>
+          <div class="tn" data-t="div">&nbsp;&nbsp;&nbsp;&nbsp; └─ 📦 div class="book"</div>
+          <div class="tn" data-t="h3">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├─ 📝 h3.title → 「銀河帝國」</div>
+          <div class="tn" data-t="p">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; └─ 📝 p.price → 「$320」</div>
+        </div>
+      </div>
+    </div>
+    <div id="treeDesc">👆 點上面任何標籤或節點,這裡會告訴你它在爬蟲眼裡的意義。</div>
+  </div>
+
+  <div class="widget">
+    <div class="widget-title">🎮 互動:元素點點看</div>
+    <div class="widget-desc">換你上場!下面是一間奶茶小舖。依照題目<b>直接在網頁上點出目標元素</b>,實際感受「資料住在哪個標籤裡」。</div>
+    <div class="cg-round" id="cgRound"></div>
+    <div class="mini-page" id="clickGame">
+      <h2 class="mg-el" data-key="shop">🧋 奶茶小舖</h2>
+      <p class="slogan mg-el" data-key="slogan">手工鮮奶茶專賣 · 每日現煮</p>
+      <div class="item">
+        <span class="mg-el item-name" data-key="name1">珍珠奶茶</span>
+        <b class="mg-el item-price" data-key="price1">$55</b>
+      </div>
+      <div class="item">
+        <span class="mg-el item-name" data-key="name2">冬瓜檸檬</span>
+        <b class="mg-el item-price" data-key="price2">$45</b>
+      </div>
+      <a class="more mg-el" data-key="more" href="javascript:void(0)">看更多飲料 →</a>
+    </div>
+    <div class="cg-fb" id="cgFb"></div>
+  </div>
+
+  <h3>你未來最好的朋友:檢查元素</h3>
+  <div class="callout note">💡 在任何網頁上<b>按右鍵 → 檢查(Inspect)</b>(或 F12),就能打開開發者工具,看到這個頁面真實的 HTML。點左上角的箭頭圖示再去點頁面元素,它會直接跳到對應的程式碼。以後你想爬什麼網站,第一步都是「檢查」——看看資料住在哪個標籤、什麼 class 裡。</div>
+
+  <div class="recap"><span class="r-label">📌 本章重點</span><span class="r-chip">&lt;標籤 屬性="值"&gt;文字&lt;/標籤&gt;</span><span class="r-chip">class 可重複、id 唯一</span><span class="r-chip">父/子/後代/兄弟 = 樹的方位</span><span class="r-chip">右鍵 → 檢查元素</span></div>
+
+  <div class="quiz" data-autocomplete="1">
+    <div class="quiz-title">🧠 小測驗 · 第 2 章</div>
+    <div class="q" data-explain="a 是標籤名稱,href 是屬性,「書籍」是文字內容。爬蟲常要同時抓屬性(連結)和文字。">
+      <p class="q-text">1. 在 <code>&lt;a href="/books"&gt;書籍&lt;/a&gt;</code> 裡,href 是什麼?</p>
+      <div class="q-opts">
+        <button data-ok="0">標籤名稱</button>
+        <button data-ok="1">屬性</button>
+        <button data-ok="0">文字內容</button>
+        <button data-ok="0">註解</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain="id 像身分證字號(整頁唯一),class 像班級(可以很多人同班)。爬蟲大多靠 class 定位。">
+      <p class="q-text">2. 關於 class 和 id,哪個敘述正確?</p>
+      <div class="q-opts">
+        <button data-ok="0">兩個都必須全頁唯一</button>
+        <button data-ok="1">class 同一頁可以重複,id 應該全頁唯一</button>
+        <button data-ok="0">id 可以重複,class 不行</button>
+        <button data-ok="0">兩個其實完全一樣</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="quiz-result"></div>
+  </div>
+
+  <footer class="ch-foot">
+    <button class="btn ghost" data-nav="prev">← 上一章</button>
+    <button class="btn primary complete-btn" data-ch="2">✓ 標記完成,前往下一章</button>
+    <button class="btn primary" data-nav="next">下一章 →</button>
+  </footer>
+</section>
+
+<!-- ============ 第 3 章 ============ -->
+<section class="chapter" data-ch="3">
+  <header class="ch-head">
+    <div class="ch-meta"><span class="ch-num">Chapter 3</span><span class="ch-mins">⏱ 約 15 分鐘 · 重點章節</span></div>
+    <h2>🎯 CSS 選擇器:爬蟲的精準定位器</h2>
+    <p class="ch-goal">🎯 這章你會學到:學會用 CSS 選擇器在一堆 HTML 裡精準點名你要的資料——這是爬蟲最核心的技能,本章全程動手玩。</p>
+  </header>
+
+  <div class="prose">
+    <p>一個真實網頁的 HTML 可能有幾千行。爬蟲的關鍵問題是:<b>怎麼從裡面精準撈出你要的那幾個元素?</b>答案就是 CSS 選擇器——一套「點名語法」,BeautifulSoup 的 <code>select()</code> 完全支援它。</p>
+  </div>
+
+  <h3>八個夠用一生的選擇器</h3>
+  <table>
+    <tr><th>寫法</th><th>意思</th><th>例子</th></tr>
+    <tr><td><code>div</code></td><td>所有這種標籤</td><td><code>a</code> → 所有連結</td></tr>
+    <tr><td><code>.class</code></td><td>class 符合的元素</td><td><code>.price</code> → 所有價格</td></tr>
+    <tr><td><code>#id</code></td><td>id 符合的元素(唯一)</td><td><code>#logo</code></td></tr>
+    <tr><td><code>A B</code></td><td>A <b>裡面</b>的 B(後代,有空格)</td><td><code>.book .title</code></td></tr>
+    <tr><td><code>A &gt; B</code></td><td>A 的<b>直接</b>子層 B</td><td><code>div.book &gt; h3</code></td></tr>
+    <tr><td><code>[attr="v"]</code></td><td>屬性等於 v</td><td><code>[data-category="科幻"]</code></td></tr>
+    <tr><td><code>A, B</code></td><td>A 或 B 都選</td><td><code>h1, h2</code></td></tr>
+    <tr><td><code>:nth-child(n)</code></td><td>第 n 個孩子</td><td><code>li:nth-child(2)</code></td></tr>
+  </table>
+  <div class="callout tip">📌 最常用的一句口訣:<b>「class 用點、id 用井號、找後代加空格。」</b>熟練這三招就能應付 90% 的場景。</div>
+
+  <div class="widget">
+    <div class="widget-title">🎮 互動:CSS 選擇器遊樂場</div>
+    <div class="widget-desc">下面是一個「真的網頁」(真的 DOM)。在輸入框打選擇器,符合的元素會<b>即時亮起來</b>。試試:<code>.price</code>、<code>#logo</code>、<code>.book .title</code>、<code>nav a</code></div>
+    <div class="pg-toolbar">
+      <input id="selInput" placeholder="輸入 CSS 選擇器,例如 .price" spellcheck="false">
+      <span id="selCount">輸入選擇器開始玩!</span>
+    </div>
+    <div id="selList"></div>
+    <div id="playground">
+      <div class="pg-site">
+        <header class="site-header">
+          <h1 id="logo">📚 書蟲網路書店</h1>
+          <nav class="menu">
+            <a href="javascript:void(0)">首頁</a>
+            <a href="javascript:void(0)">全部書籍</a>
+            <a href="javascript:void(0)">購物車</a>
+          </nav>
+        </header>
+        <div class="book" data-category="科幻">
+          <h3 class="title">銀河帝國</h3>
+          <span class="author">以撒·艾西莫夫</span>
+          <span class="price">$320</span>
+        </div>
+        <div class="book" data-category="科幻">
+          <h3 class="title">海底兩萬里</h3>
+          <span class="author">儒勒·凡爾納</span>
+          <span class="price">$280</span>
+        </div>
+        <div class="book" data-category="文學">
+          <h3 class="title">紅樓夢</h3>
+          <span class="author">曹雪芹</span>
+          <span class="price">$450</span>
+        </div>
+        <div class="book" data-category="文學">
+          <h3 class="title">老人與海</h3>
+          <span class="author">海明威</span>
+          <span class="price">$220</span>
+        </div>
+        <div class="book" data-category="電腦">
+          <h3 class="title">資料煉金術</h3>
+          <span class="author">珍·多伊</span>
+          <span class="price">$580</span>
+        </div>
+        <div class="book" data-category="電腦">
+          <h3 class="title">深入淺出 Python</h3>
+          <span class="author">約翰·史密斯</span>
+          <span class="price">$650</span>
+        </div>
+        <div class="rank">
+          <h3 class="rank-title">🔥 本週熱賣 TOP 3</h3>
+          <ol class="rank-list">
+            <li>資料煉金術</li>
+            <li>深入淺出 Python</li>
+            <li>銀河帝國</li>
+          </ol>
+        </div>
+        <footer class="site-footer">© 2026 書蟲網路書店 · 本頁純屬教學demo</footer>
+      </div>
+      <div class="pg-note">這個書店是真實的 DOM —— 你的選擇器真的作用在它身上!</div>
+    </div>
+
+    <div id="challengeList">
+      <div class="widget-title" style="margin-bottom:10px">🏆 八個定位挑戰(全部解開才算出師)</div>
+      <div class="challenge" data-idx="0" data-accept=".title||.book .title||h3.title">
+        <div class="ch-q">挑戰 1:選出全部 6 個書名</div>
+        <div class="ch-actions"><button class="btn small primary check-btn">用上面的選擇器檢查</button><button class="btn small ghost hint-btn">提示</button></div>
+        <div class="ch-hint hidden">書名元素的 class 叫什麼?一個「.」加上 class 名就好。</div>
+        <div class="ch-fb"></div>
+      </div>
+      <div class="challenge" data-idx="1" data-accept="#logo">
+        <div class="ch-q">挑戰 2:選出書店 logo 標題(id 為 logo 的元素)</div>
+        <div class="ch-actions"><button class="btn small primary check-btn">用上面的選擇器檢查</button><button class="btn small ghost hint-btn">提示</button></div>
+        <div class="ch-hint hidden">id 用「井號 #」。</div>
+        <div class="ch-fb"></div>
+      </div>
+      <div class="challenge" data-idx="2" data-accept='.book[data-category="科幻"]||.book[data-category=科幻]'>
+        <div class="ch-q">挑戰 3:只選出「科幻」類的書(2 本)</div>
+        <div class="ch-actions"><button class="btn small primary check-btn">用上面的選擇器檢查</button><button class="btn small ghost hint-btn">提示</button></div>
+        <div class="ch-hint hidden">屬性選擇器:.book[data-category="科幻"]</div>
+        <div class="ch-fb"></div>
+      </div>
+      <div class="challenge" data-idx="3" data-accept=".price||.book .price||span.price">
+        <div class="ch-q">挑戰 4:選出全部 6 個價格</div>
+        <div class="ch-actions"><button class="btn small primary check-btn">用上面的選擇器檢查</button><button class="btn small ghost hint-btn">提示</button></div>
+        <div class="ch-hint hidden">價格的 class 叫 price。</div>
+        <div class="ch-fb"></div>
+      </div>
+      <div class="challenge" data-idx="4" data-accept="nav a||.menu a||nav.menu a">
+        <div class="ch-q">挑戰 5:選出導覽選單裡的 3 個連結</div>
+        <div class="ch-actions"><button class="btn small primary check-btn">用上面的選擇器檢查</button><button class="btn small ghost hint-btn">提示</button></div>
+        <div class="ch-hint hidden">連結都在 &lt;nav&gt; 裡:「nav a」或「.menu a」都可以。</div>
+        <div class="ch-fb"></div>
+      </div>
+      <div class="challenge" data-idx="5" data-accept=".rank-list li:first-child||.rank .rank-list li:first-child||ol.rank-list li:first-child">
+        <div class="ch-q">挑戰 6:只選出排行榜上的「第一名」書籍(1 個)</div>
+        <div class="ch-actions"><button class="btn small primary check-btn">用上面的選擇器檢查</button><button class="btn small ghost hint-btn">提示</button></div>
+        <div class="ch-hint hidden">偽類 :first-child 選「第一個孩子」:.rank-list li:first-child</div>
+        <div class="ch-fb"></div>
+      </div>
+      <div class="challenge" data-idx="6" data-accept="div.book>h3||div.book > h3||.book>.title||.book > .title">
+        <div class="ch-q">挑戰 7:用「直接子層」符號 &gt;,選出每本書卡片直屬的書名(6 個)</div>
+        <div class="ch-actions"><button class="btn small primary check-btn">用上面的選擇器檢查</button><button class="btn small ghost hint-btn">提示</button></div>
+        <div class="ch-hint hidden">「A &gt; B」只選 A 的直接孩子(不含孫子):div.book &gt; h3</div>
+        <div class="ch-fb"></div>
+      </div>
+      <div class="challenge" data-idx="7" data-accept="nav a:nth-child(2)||.menu a:nth-child(2)||nav.menu a:nth-child(2)">
+        <div class="ch-q">挑戰 8:只選出選單裡的「全部書籍」那個連結(1 個)</div>
+        <div class="ch-actions"><button class="btn small primary check-btn">用上面的選擇器檢查</button><button class="btn small ghost hint-btn">提示</button></div>
+        <div class="ch-hint hidden">:nth-child(2) 選第二個孩子:nav a:nth-child(2)</div>
+        <div class="ch-fb"></div>
+      </div>
+      <div id="pgWin" class="hidden">🏆 挑戰全破!你已經掌握爬蟲最重要的定位技能了,下一章把它寫成真正的程式!</div>
+    </div>
+  </div>
+
+  <div class="recap"><span class="r-label">📌 本章重點</span><span class="r-chip">.class、#id、空格=後代</span><span class="r-chip">[attr="值"] 屬性選擇</span><span class="r-chip">:first-child / :nth-child(n)</span><span class="r-chip">A &gt; B 只找直接子層</span></div>
+
+  <div class="quiz" data-autocomplete="1">
+    <div class="quiz-title">🧠 小測驗 · 第 3 章</div>
+    <div class="q" data-explain="空格代表「後代關係」。book.price(沒空格)是選同時擁有兩個 class 的元素;.book,.price 是「或」,兩種都選。">
+      <p class="q-text">1. 想選出「class 為 book 的元素<b>裡面</b>、class 為 price 的元素」,哪個寫法對?</p>
+      <div class="q-opts">
+        <button data-ok="1">.book .price</button>
+        <button data-ok="0">book.price</button>
+        <button data-ok="0">#book #price</button>
+        <button data-ok="0">.book,.price</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="quiz-result"></div>
+  </div>
+
+  <footer class="ch-foot">
+    <button class="btn ghost" data-nav="prev">← 上一章</button>
+    <button class="btn primary complete-btn" data-ch="3">✓ 標記完成,前往下一章</button>
+    <button class="btn primary" data-nav="next">下一章 →</button>
+  </footer>
+</section>
+
+<!-- ============ 第 4 章 ============ -->
+<section class="chapter" data-ch="4">
+  <header class="ch-head">
+    <div class="ch-meta"><span class="ch-num">Chapter 4</span><span class="ch-mins">⏱ 約 12 分鐘</span></div>
+    <h2>🐍 第一支爬蟲誕生</h2>
+    <p class="ch-goal">🎯 這章你會學到:用 requests + BeautifulSoup 寫出你人生第一支爬蟲,看懂每一行在做什麼。</p>
+  </header>
+
+  <h3>兩位主角</h3>
+  <ul>
+    <li><b>requests</b> —— 負責上網的「司機」:開著車(HTTP 請求)去伺服器載貨(HTML)回來。</li>
+    <li><b>BeautifulSoup</b> —— 負責拆貨的「倉管」:把一團 HTML 文字變成好查詢的結構,讓你用 CSS 選擇器精準取貨。</li>
+  </ul>
+  <div class="cmd"><code>pip install requests beautifulsoup4</code><button class="copy-btn" data-copy="pip install requests beautifulsoup4">複製</button></div>
+
+  <h3>先熱身:只抓回應,不解析</h3>
+  <div class="runner" >
+    <div class="codebox">
+      <div class="runner-head"><span class="dots"><i></i><i></i><i></i></span><span class="fname">warmup.py</span><button class="run-btn">▶ 執行</button></div>
+      <pre class="code py">import requests
+
+response = requests.get("https://example.com/books", timeout=10)
+print("狀態碼:", response.status_code)
+print("內容類型:", response.headers["Content-Type"])
+print("HTML 長度:", len(response.text), "個字元")</pre>
+      <pre class="out hidden">狀態碼: 200
+內容類型: text/html; charset=utf-8
+HTML 長度: 1284 個字元</pre>
+    </div>
+  </div>
+
+  <h3>完整的第一支爬蟲</h3>
+  <div class="runner">
+    <div class="codebox">
+      <div class="runner-head"><span class="dots"><i></i><i></i><i></i></span><span class="fname">scraper.py</span><button class="run-btn">▶ 執行</button></div>
+      <pre class="code py">import requests
+from bs4 import BeautifulSoup
+
+url = "https://example.com/books"
+headers = {"User-Agent": "MyFirstScraper/1.0 (student@example.com)"}
+
+# 1. 發送請求,拿到回應
+response = requests.get(url, headers=headers, timeout=10)
+response.raise_for_status()   # 狀態碼不是 2xx 就直接報錯
+
+# 2. 交給 BeautifulSoup 解析
+soup = BeautifulSoup(response.text, "html.parser")
+
+# 3. 定位並萃取資料(第 3 章學的選擇器上場!)
+site_name = soup.select_one("#logo").get_text(strip=True)
+books = soup.select("div.book")
+print("網站名稱:", site_name)
+print("本頁共找到", len(books), "本書:")
+for book in books:
+    name = book.select_one(".title").get_text(strip=True)
+    price = book.select_one(".price").get_text(strip=True)
+    print("-", name, price)</pre>
+      <pre class="out hidden">網站名稱: 書蟲網路書店
+本頁共找到 6 本書:
+- 銀河帝國 $320
+- 海底兩萬里 $280
+- 紅樓夢 $450
+- 老人與海 $220
+- 資料煉金術 $580
+- 深入淺出 Python $650</pre>
+    </div>
+  </div>
+
+  <h3>逐行解剖</h3>
+  <ol>
+    <li><code>requests.get(url, headers=..., timeout=10)</code> —— 發 GET 請求。<b>timeout 一定要設</b>,否則伺服器不回應時程式會掛在那裡等到天荒地老。</li>
+    <li><code>raise_for_status()</code> —— 保險絲:如果回來的是 404/403,立刻報錯,不要傻傻解析一坨錯誤頁面。</li>
+    <li><code>BeautifulSoup(response.text, "html.parser")</code> —— 把 HTML 文字餵給解析器,變成可查詢的 <code>soup</code>。</li>
+    <li><code>soup.select_one("#logo")</code> —— 選擇器找到的<b>第一個</b>元素;<code>get_text(strip=True)</code> 取出乾淨的文字(去掉前後空白)。</li>
+    <li><code>soup.select("div.book")</code> —— 回傳<b>所有</b>符合元素的清單,配 for 迴圈一個一個處理。</li>
+    <li>在每本書的盒子裡再往下 select 書名和價格 —— <b>先框大範圍、再取小內容</b>,這是爬蟲最重要的思考模式。</li>
+  </ol>
+
+  <h3>新手三大坑(先知道,少走彎路)</h3>
+  <div class="callout warn">
+    ⚠️ <b>坑 1:沒帶 User-Agent 就 403。</b>很多網站直接擋掉預設的 <code>python-requests</code>。永遠帶上 headers。
+    <br><br>⚠️ <b>坑 2:對 None 呼叫方法。</b><code>select_one()</code> 找不到時回傳 <code>None</code>,接著 <code>.get_text()</code> 就會噴 <code>AttributeError</code>。養成習慣:<code>el = soup.select_one(".price")</code> 之後先 <code>if el:</code>。
+    <br><br>⚠️ <b>坑 3:中文亂碼。</b>如果 <code>response.text</code> 亂碼,手動指定 <code>response.encoding = "utf-8"</code> 再取 .text。
+  </div>
+
+  <h3>延伸:抓「連結」——爬蟲的傳送門</h3>
+  <p>爬蟲不只能抓文字。<b>屬性</b>也常是目標——拿到 <code>&lt;a&gt;</code> 的 <code>href</code>,就等於拿到下一批要拜訪的網址,這正是爬蟲能「爬遍全站」的原因:</p>
+  <div class="runner">
+    <div class="codebox">
+      <div class="runner-head"><span class="dots"><i></i><i></i><i></i></span><span class="fname">links.py</span><button class="run-btn">▶ 執行</button></div>
+      <pre class="code py">import requests
+from bs4 import BeautifulSoup
+
+resp = requests.get("https://example.com/books", timeout=10)
+soup = BeautifulSoup(resp.text, "html.parser")
+
+for a in soup.select("nav.menu a"):
+    print(a.get_text(strip=True), "→", a["href"])</pre>
+      <pre class="out hidden">首頁 → /
+全部書籍 → /books
+購物車 → /cart</pre>
+    </div>
+  </div>
+  <div class="callout tip">📌 取屬性兩種寫法:<code>a["href"]</code>(屬性不存在會 KeyError)與 <code>a.get("href")</code>(不存在回 None,比較安全)。<b>文字用 get_text(),屬性用中括號</b>——這條分界線要記牢。</div>
+
+  <h3>🎮 隨堂挑戰:預測輸出</h3>
+  <div class="widget">
+    <div class="widget-desc">先在心裡猜答案再點選——答對時會揭曉真實的執行結果。這三題都是新手最常摔跤的地方。</div>
+    <div class="quiz" data-msg="0">
+      <div class="q" data-explain="select() 永遠回傳清單;HTML 裡有 3 個 .title,len() 就是 3。">
+        <p class="q-text">1️⃣ HTML 裡有 3 個 class="title" 的元素,這段程式印出什麼?</p>
+        <pre class="code py">names = soup.select(".title")
+print(len(names))</pre>
+        <div class="q-opts">
+          <button data-ok="0">1</button>
+          <button data-ok="1">3</button>
+          <button data-ok="0">程式直接報錯</button>
+        </div>
+        <pre class="out reveal-out">3</pre>
+        <div class="q-feedback"></div>
+      </div>
+      <div class="q" data-explain="select_one() 找不到時回傳 None;對 None 呼叫 .get_text() 就是「新手三大坑」第二名!">
+        <p class="q-text">2️⃣ HTML 裡「完全沒有」.price 元素,這段程式印出什麼?</p>
+        <pre class="code py">el = soup.select_one(".price")
+print(el.get_text())</pre>
+        <div class="q-opts">
+          <button data-ok="0">空字串</button>
+          <button data-ok="0">None</button>
+          <button data-ok="1">AttributeError(程式崩潰)</button>
+        </div>
+        <pre class="out reveal-out">AttributeError: 'NoneType' object has no attribute 'get_text'</pre>
+        <div class="q-feedback"></div>
+      </div>
+      <div class="q" data-explain='元素像 Python 字典:屬性用 el["href"] 取出,文字才用 get_text()。'>
+        <p class="q-text">3️⃣ HTML 有 <code>&lt;a href="/next"&gt;下一頁&lt;/a&gt;</code>,這段程式印出什麼?</p>
+        <pre class="code py">link = soup.select_one("a")
+print(link["href"])</pre>
+        <div class="q-opts">
+          <button data-ok="0">下一頁</button>
+          <button data-ok="1">/next</button>
+          <button data-ok="0">KeyError</button>
+        </div>
+        <pre class="out reveal-out">/next</pre>
+        <div class="q-feedback"></div>
+      </div>
+    </div>
+  </div>
+
+  <h3>🕵️ 錯誤訊息偵探:讀懂 Python 在罵什麼</h3>
+  <div class="widget">
+    <div class="widget-desc">寫爬蟲一定會遇到錯誤。<b>高手和新手的差別,就是讀不讀得懂 Traceback</b>——記住口訣:從最後一行往上看。來診斷三個最常見的案發現場:</div>
+    <div class="quiz" data-msg="0">
+      <div class="q" data-explain="Traceback 最後一行是關鍵:'NoneType' object has no attribute 'get_text' = select_one 沒選到、回傳了 None。">
+        <p class="q-text">1️⃣ 這個錯誤在說什麼?</p>
+        <pre class="code net">Traceback (most recent call last):
+  File "scraper.py", line 8, in &lt;module&gt;
+    price = soup.select_one(".price").get_text()
+AttributeError: 'NoneType' object has no attribute 'get_text'</pre>
+        <div class="q-opts">
+          <button data-ok="0">Python 沒安裝好</button>
+          <button data-ok="1">選擇器 .price 沒選到任何元素,select_one 回傳 None</button>
+          <button data-ok="0">第 8 行的縮排打錯了</button>
+        </div>
+        <pre class="out reveal-out"># 修正:先用 if 檢查,再使用
+el = soup.select_one(".price")
+if el:
+    print(el.get_text())</pre>
+        <div class="q-feedback"></div>
+      </div>
+      <div class="q" data-explain="Invalid URL(無效網址)= 網址少了開頭的 https://。requests 需要完整的協定 + 網域。">
+        <p class="q-text">2️⃣ 這個錯誤在說什麼?</p>
+        <pre class="code net">requests.exceptions.MissingSchema: Invalid URL 'example.com/books':
+No scheme supplied. Perhaps you meant https://example.com/books?</pre>
+        <div class="q-opts">
+          <button data-ok="0">網站伺服器掛掉了</button>
+          <button data-ok="1">網址忘了加 https:// 開頭</button>
+          <button data-ok="0">requests 套件沒安裝</button>
+        </div>
+        <pre class="out reveal-out"># 修正:補上協定
+resp = requests.get("https://example.com/books", timeout=10)</pre>
+        <div class="q-feedback"></div>
+      </div>
+      <div class="q" data-explain="KeyError = 這個元素根本沒有 href 屬性(例如你選到的是 &lt;h2&gt;)。用 el.get('href') 安全取值,不存在就回 None,不會炸。">
+        <p class="q-text">3️⃣ 這個錯誤在說什麼?</p>
+        <pre class="code net">Traceback (most recent call last):
+  File "links.py", line 6, in &lt;module&gt;
+    print(a["href"])
+KeyError: 'href'</pre>
+        <div class="q-opts">
+          <button data-ok="0">h2 標題不能被印出來</button>
+          <button data-ok="0">字典必須改成 JSON</button>
+          <button data-ok="1">這個元素沒有 href 屬性;用 a.get("href") 較安全</button>
+        </div>
+        <pre class="out reveal-out"># 修正:安全取屬性
+print(a.get("href"))   # 沒有該屬性就回 None,不會炸</pre>
+        <div class="q-feedback"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="recap"><span class="r-label">📌 本章重點</span><span class="r-chip">requests 抓 → BeautifulSoup 解析</span><span class="r-chip">select 清單 / select_one 單個或 None</span><span class="r-chip">timeout + raise_for_status 是標配</span><span class="r-chip">錯誤從 Traceback 最後一行讀起</span></div>
+
+  <div class="quiz" data-autocomplete="1">
+    <div class="quiz-title">🧠 小測驗 · 第 4 章</div>
+    <div class="q" data-explain="response.text 是解碼後的文字;response.content 是原始位元組。BeautifulSoup 吃 .text。">
+      <p class="q-text">1. 要拿到回應中的 HTML 文字,用哪個屬性?</p>
+      <div class="q-opts">
+        <button data-ok="0">response.html</button>
+        <button data-ok="1">response.text</button>
+        <button data-ok="0">response.data</button>
+        <button data-ok="0">response.body</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain="select 回傳所有符合的 list(可能為空);select_one 只回傳第一個,找不到回傳 None。">
+      <p class="q-text">2. soup.select() 和 soup.select_one() 的差別?</p>
+      <div class="q-opts">
+        <button data-ok="0">完全一樣,只是名字不同</button>
+        <button data-ok="1">select 回傳所有符合的清單;select_one 只回傳第一個(或 None)</button>
+        <button data-ok="0">select 比較慢,所以沒人用</button>
+        <button data-ok="0">select_one 回傳清單</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain="UA 是請求的名片。誠實且有禮的 UA(附聯絡方式)是好爬蟲標配,也能減少被 403。">
+      <p class="q-text">3. 為什麼請求時要設定 User-Agent?</p>
+      <div class="q-opts">
+        <button data-ok="0">沒差,純裝飾</button>
+        <button data-ok="0">可以讓程式跑得更快</button>
+        <button data-ok="1">網站常擋掉預設 UA,設定 UA 較不易被 403,也能表明身分</button>
+        <button data-ok="0">可以突破任何封鎖</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="quiz-result"></div>
+  </div>
+
+  <footer class="ch-foot">
+    <button class="btn ghost" data-nav="prev">← 上一章</button>
+    <button class="btn primary complete-btn" data-ch="4">✓ 標記完成,前往下一章</button>
+    <button class="btn primary" data-nav="next">下一章 →</button>
+  </footer>
+</section>
+
+<!-- ============ 第 5 章 ============ -->
+<section class="chapter" data-ch="5">
+  <header class="ch-head">
+    <div class="ch-meta"><span class="ch-num">Chapter 5</span><span class="ch-mins">⏱ 約 10 分鐘</span></div>
+    <h2>📚 實戰:分頁爬取</h2>
+    <p class="ch-goal">🎯 這章你會學到:學會觀察分頁 URL 的規律,用迴圈自動爬完整個商品目錄。</p>
+  </header>
+
+  <h3>分頁的秘密:URL 的規律</h3>
+  <div class="prose">
+    <p>點開任何網站的「下一頁」,注意網址列:</p>
+    <pre class="codebox net">https://example.com/books?page=1
+https://example.com/books?page=2
+https://example.com/books?page=3   ← 規律:只有 page= 後面的數字在變!</pre>
+    <p>發現規律後,<b>爬蟲就可以用一個 for 迴圈自動「翻頁」</b>,根本不需要有人去點按鈕。</p>
+  </div>
+
+  <div class="widget">
+    <div class="widget-title">🎮 互動:你會推算分頁網址了嗎?</div>
+    <div class="widget-desc">這個網站的第 1 頁是 <code>https://example.com/books?page=1</code>。請輸入「第 7 頁」的完整網址。</div>
+    <div class="pg-toolbar">
+      <input class="tool-input" id="urlGuess" placeholder="https://…" spellcheck="false">
+      <button class="btn primary small" id="urlGuessBtn">檢查</button>
+    </div>
+    <div class="cg-fb" id="urlGuessFb"></div>
+  </div>
+
+  <div class="runner">
+    <div class="codebox">
+      <div class="runner-head"><span class="dots"><i></i><i></i><i></i></span><span class="fname">pagination.py</span><button class="run-btn">▶ 執行</button></div>
+      <pre class="code py">import time
+import requests
+from bs4 import BeautifulSoup
+
+all_books = []                     # 一個大清單,累積每一頁的收穫
+
+for page in range(1, 4):           # 想爬幾頁就填多少
+    url = f"https://example.com/books?page={page}"
+    resp = requests.get(url, timeout=10)
+    resp.raise_for_status()
+    soup = BeautifulSoup(resp.text, "html.parser")
+
+    for book in soup.select("div.book"):
+        all_books.append({         # 每本書存成一個 dict
+            "書名": book.select_one(".title").get_text(strip=True),
+            "價格": book.select_one(".price").get_text(strip=True),
+            "來自頁": page,
+        })
+    print(f"第 {page} 頁完成,目前累積 {len(all_books)} 筆")
+    time.sleep(2)                  # 禮貌等待,別打爆伺服器
+
+print("總共抓到", len(all_books), "筆資料")</pre>
+      <pre class="out hidden">第 1 頁完成,目前累積 3 筆
+第 2 頁完成,目前累積 6 筆
+第 3 頁完成,目前累積 9 筆
+總共抓到 9 筆資料</pre>
+    </div>
+  </div>
+
+  <div class="widget">
+    <div class="widget-title">🎮 互動:分頁爬蟲模擬器</div>
+    <div class="widget-desc">按「爬下一頁」,看爬蟲如何一頁一頁累積資料(左邊是模擬的資料表,下面是程式 print 出來的紀錄)。</div>
+    <div class="pag-wrap">
+      <div>
+        <div id="pagStatus">按「爬下一頁」開始。</div>
+        <table id="pagTable">
+          <thead><tr><th>書名</th><th>價格</th><th>來自</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div style="display:flex;gap:10px;margin-top:12px">
+          <button class="btn primary" id="pagNext">🕷️ 爬下一頁</button>
+          <button class="btn ghost" id="pagReset">重來</button>
+        </div>
+        <div id="pagLog"></div>
+      </div>
+      <div>
+        <pre class="codebox net" style="margin:0">while 還有下一頁:
+    resp = get(f"...?page={page}")
+    抓出這一頁的每本書 → append
+    print(累積筆數)
+    sleep(2)          ← 每頁之間
+    page = page + 1</pre>
+        <div class="callout tip" style="margin-top:12px">📌 觀察重點:<b>資料是「累積」的</b>——每一頁的收穫都 append 進 all_books,九筆資料最後躺在同一個清單裡,下一章就能一口氣存檔。</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>表格型資料順手學</h3>
+  <p>很多網站用 <code>&lt;table&gt;</code> 排資料,爬法同樣是「先框行、再取格」:</p>
+  <div class="runner">
+    <div class="codebox">
+      <div class="runner-head"><span class="dots"><i></i><i></i><i></i></span><span class="fname">table_scraper.py</span><button class="run-btn">▶ 執行</button></div>
+      <pre class="code py">for row in soup.select("table tr"):        # 每一列 &lt;tr&gt;
+    cells = row.select("td")               # 這列的每一格 &lt;td&gt;
+    if len(cells) == 3:                    # 只處理剛好 3 格的列
+        print(cells[0].get_text(strip=True), "|",
+              cells[1].get_text(strip=True), "|",
+              cells[2].get_text(strip=True))</pre>
+      <pre class="out hidden">Python 入門 | 30 小時 | $1,200
+資料分析實戰 | 42 小時 | $1,800
+網站部署指南 | 18 小時 | $950</pre>
+    </div>
+  </div>
+
+  <div class="recap"><span class="r-label">📌 本章重點</span><span class="r-chip">觀察 URL → 找出 page= 規律</span><span class="r-chip">for page in range(1, N+1)</span><span class="r-chip">list + append 累積資料</span><span class="r-chip">每頁之間 time.sleep(2)</span></div>
+
+  <div class="quiz" data-autocomplete="1">
+    <div class="quiz-title">🧠 小測驗 · 第 5 章</div>
+    <div class="q" data-explain="找出 URL 規律後,用 for page in range(1, N+1) 迴圈就能自動翻頁。">
+      <p class="q-text">1. 大多數網站的分頁,URL 會怎麼變化?</p>
+      <div class="q-opts">
+        <button data-ok="0">完全不變</button>
+        <button data-ok="1">有規律,例如 ?page=2、?page=3</button>
+        <button data-ok="0">隨機亂數</button>
+        <button data-ok="0">只能用滑鼠點</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain="all_books = [] 加上 append(dict),是爬蟲最經典的資料累積模式。">
+      <p class="q-text">2. 想把每一頁的資料累積起來,常見做法是?</p>
+      <div class="q-opts">
+        <button data-ok="0">每頁都蓋掉上一頁的變數</button>
+        <button data-ok="0">只存最後一頁</button>
+        <button data-ok="0">印到螢幕上就好</button>
+        <button data-ok="1">建立一個空 list,每抓到一筆就 append</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="quiz-result"></div>
+  </div>
+
+  <footer class="ch-foot">
+    <button class="btn ghost" data-nav="prev">← 上一章</button>
+    <button class="btn primary complete-btn" data-ch="5">✓ 標記完成,前往下一章</button>
+    <button class="btn primary" data-nav="next">下一章 →</button>
+  </footer>
+</section>
+
+<!-- ============ 第 6 章 ============ -->
+<section class="chapter" data-ch="6">
+  <header class="ch-head">
+    <div class="ch-meta"><span class="ch-num">Chapter 6</span><span class="ch-mins">⏱ 約 8 分鐘</span></div>
+    <h2>💾 把資料存下來</h2>
+    <p class="ch-goal">🎯 這章你會學到:把爬到的資料存成 CSV / JSON / Excel,爬一次、用一萬次。</p>
+  </header>
+
+  <div class="prose">
+    <p>辛辛苦苦爬來的資料只印在終端機上,關掉視窗就沒了。<b>存檔</b>讓你可以重複分析、離線使用,也讓你不必每次都去打擾伺服器——存過的就不重爬。</p>
+  </div>
+
+  <table>
+    <tr><th>格式</th><th>適合</th><th>特點</th></tr>
+    <tr><td><b>CSV</b></td><td>表格資料、給 Excel 開</td><td>最通用,但只能存平面表格</td></tr>
+    <tr><td><b>JSON</b></td><td>給程式讀、有階層的資料</td><td>能存巢狀結構,程式世界共通語言</td></tr>
+    <tr><td><b>Excel(xlsx)</b></td><td>給人看、要美化</td><td>用 pandas 一行搞定</td></tr>
+  </table>
+
+  <div class="runner">
+    <div class="codebox">
+      <div class="runner-head"><span class="dots"><i></i><i></i><i></i></span><span class="fname">save.py</span><button class="run-btn">▶ 執行</button></div>
+      <pre class="code py">import csv
+import json
+
+# 存成 CSV —— Excel 雙擊就能開
+with open("books.csv", "w", encoding="utf-8", newline="") as f:
+    writer = csv.DictWriter(f, fieldnames=["書名", "價格", "來自頁"])
+    writer.writeheader()
+    writer.writerows(all_books)
+
+# 存成 JSON —— 程式好讀、能保留階層
+with open("books.json", "w", encoding="utf-8") as f:
+    json.dump(all_books, f, ensure_ascii=False, indent=2)
+
+# 進階:存 Excel(xlsx)只要 pandas 一行
+# import pandas as pd
+# pd.DataFrame(all_books).to_excel("books.xlsx", index=False)</pre>
+      <pre class="out hidden">✅ 已寫入 books.csv(9 筆)
+✅ 已寫入 books.json(9 筆)
+print(f"完成!檔案就在你的資料夾裡")</pre>
+    </div>
+  </div>
+
+  <div class="widget">
+    <div class="widget-title">🎮 互動:同一份資料,三種存法</div>
+    <div class="widget-desc">點格式按鈕,看看 9 筆書籍資料存起來長什麼樣。</div>
+    <div class="fmt-tabs">
+      <button class="fmt-btn on" data-fmt="csv">📄 CSV</button>
+      <button class="fmt-btn" data-fmt="json">🧬 JSON</button>
+      <button class="fmt-btn" data-fmt="xlsx">📊 Excel</button>
+    </div>
+    <div id="prev-csv">
+      <pre class="net">書名,價格,來自頁
+銀河帝國,$320,1
+海底兩萬里,$280,1
+紅樓夢,$450,1
+老人與海,$220,1
+…(共 9 筆)</pre>
+    </div>
+    <div id="prev-json" class="hidden">
+      <pre class="net">[
+  {
+    "書名": "銀河帝國",
+    "價格": "$320",
+    "來自頁": 1
+  },
+  {
+    "書名": "海底兩萬里",
+    "價格": "$280",
+    "來自頁": 1
+  }
+  // …(共 9 筆)
+]</pre>
+    </div>
+    <div id="prev-xlsx" class="hidden">
+      <table class="xl">
+        <tr><th>　</th><th>A</th><th>B</th><th>C</th></tr>
+        <tr><td><b>1</b></td><td>書名</td><td>價格</td><td>來自頁</td></tr>
+        <tr><td><b>2</b></td><td>銀河帝國</td><td>$320</td><td>1</td></tr>
+        <tr><td><b>3</b></td><td>海底兩萬里</td><td>$280</td><td>1</td></tr>
+        <tr><td><b>4</b></td><td>紅樓夢</td><td>$450</td><td>1</td></tr>
+      </table>
+    </div>
+    <div class="fmt-note">💡 預覽只顯示前幾筆;實際檔案包含全部 9 筆。</div>
+  </div>
+
+  <h3>🎮 隨堂挑戰:幫資料選個家</h3>
+  <div class="quiz" data-msg="0">
+    <div class="q" data-explain="CSV 用 Excel 雙擊就能開,是最通用的表格格式;JSON 是給程式看的,人眼很難讀。">
+      <p class="q-text">1️⃣ 老闆每天要看價格表,而他只會用 Excel。</p>
+      <div class="q-opts">
+        <button data-ok="0">JSON</button>
+        <button data-ok="1">CSV</button>
+        <button data-ok="0">印在終端機,截圖傳給他</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain="有階層的資料(商品→規格列表)用 JSON 才不會被壓平;Python 用 json.load() 一行讀回來。">
+      <p class="q-text">2️⃣ 資料有「商品 → 規格列表」的巢狀階層,下一步要交給另一支 Python 程式分析。</p>
+      <div class="q-opts">
+        <button data-ok="0">CSV(階層會被壓平)</button>
+        <button data-ok="1">JSON</button>
+        <button data-ok="0">複製貼到聊天視窗</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain="正式報告用 xlsx 最體面:pandas 一行存好,還能加標題、上色、插圖表。">
+      <p class="q-text">3️⃣ 要交給客戶一份正式報表,希望有標題列與格式美化。</p>
+      <div class="q-opts">
+        <button data-ok="0">CSV</button>
+        <button data-ok="0">JSON</button>
+        <button data-ok="1">Excel(xlsx)</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+  </div>
+
+  <div class="callout warn">⚠️ <b>中文存檔兩大護身符:</b>① <code>open(..., encoding="utf-8")</code>——否則 Windows 下中文可能變亂碼;② JSON 加 <code>ensure_ascii=False</code>——否則中文會變成 <code>\u98a8</code> 這種天書。CSV 記得 <code>newline=""</code>,避免 Excel 出現空行。</div>
+
+  <div class="callout note">💡 <b>巢狀 JSON 長相:</b>爬蟲最常從 API 拿到這種「清單裡有字典」的資料,Python 用 <code>data["products"][0]["name"]</code> 一層層取值:</div>
+  <pre class="codebox net">{
+  "products": [
+    {"name": "無線滑鼠",  "price": 590},
+    {"name": "機械鍵盤",  "price": 1290}
+  ],
+  "totalPages": 3
+}</pre>
+
+  <div class="recap"><span class="r-label">📌 本章重點</span><span class="r-chip">爬一次、存起來、重複用</span><span class="r-chip">給人看 CSV/Excel、給程式 JSON</span><span class="r-chip">utf-8 + ensure_ascii=False + newline=""</span></div>
+
+  <div class="quiz" data-autocomplete="1">
+    <div class="quiz-title">🧠 小測驗 · 第 6 章</div>
+    <div class="q" data-explain="CSV 可以直接被 Excel 開啟;JSON 更適合給程式讀、保留階層。">
+      <p class="q-text">1. 想把資料給不會寫程式的同事用 Excel 看,存哪種最好?</p>
+      <div class="q-opts">
+        <button data-ok="0">JSON</button>
+        <button data-ok="1">CSV</button>
+        <button data-ok="0">直接印在終端機截圖</button>
+        <button data-ok="0">存在 Python 變數裡</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain="ensure_ascii=False 保留原文,搭配 encoding="utf-8" 是存中文的標配。">
+      <p class="q-text">2. 用 json.dump 存中文,檔案裡出現一堆 \u98a8,怎麼解?</p>
+      <div class="q-opts">
+        <button data-ok="0">沒救了,JSON 不能存中文</button>
+        <button data-ok="1">加上 ensure_ascii=False</button>
+        <button data-ok="0">手動把 \u 換回中文</button>
+        <button data-ok="0">改存 CSV 就不會</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="quiz-result"></div>
+  </div>
+
+  <footer class="ch-foot">
+    <button class="btn ghost" data-nav="prev">← 上一章</button>
+    <button class="btn primary complete-btn" data-ch="6">✓ 標記完成,前往下一章</button>
+    <button class="btn primary" data-nav="next">下一章 →</button>
+  </footer>
+</section>
+
+<!-- ============ 第 7 章 ============ -->
+<section class="chapter" data-ch="7">
+  <header class="ch-head">
+    <div class="ch-meta"><span class="ch-num">Chapter 7</span><span class="ch-mins">⏱ 約 10 分鐘</span></div>
+    <h2>⚡ 動態網頁怎麼辦?</h2>
+    <p class="ch-goal">🎯 這章你會學到:判斷資料是不是 JavaScript 才畫上去的,並學會兩種對策:找隱藏 API 與無頭瀏覽器。</p>
+  </header>
+
+  <div class="prose">
+    <p>有時候你會遇到鬼打牆:瀏覽器上明明看得到商品列表,<b>但爬蟲抓回來的 HTML 裡就是沒有</b>。原因:這些資料是網頁載入後,由 <b>JavaScript 再向伺服器要資料、現場畫上去的</b>(俗稱 AJAX / 動態渲染)。第 1 章說過爬蟲只拿原始 HTML——JS 沒跑,資料自然不存在。</p>
+  </div>
+
+  <div class="widget">
+    <div class="widget-title">🎮 互動:同一個頁面的兩種面貌</div>
+    <div class="widget-desc">切換分頁,感受「爬蟲看到的」和「你看到的」差別。</div>
+    <div class="dyn-tabs">
+      <button class="dyn-tab on" data-tab="src">🧾 檢視原始碼(爬蟲看到的)</button>
+      <button class="dyn-tab" data-tab="dom">🖥️ 渲染後的 DOM(瀏覽器看到的)</button>
+    </div>
+    <div id="paneSrc">
+      <pre class="net">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;&lt;title&gt;閃購特賣會&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;⚡ 閃購特賣會&lt;/h1&gt;
+  &lt;div id="app"&gt;
+    &lt;!-- 商品清單由 JavaScript 載入 --&gt;
+  &lt;/div&gt;
+  &lt;script&gt;loadProducts("/api/products")&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+❌ 找不到任何商品資料!</pre>
+    </div>
+    <div id="paneDom" class="hidden">
+      <div class="pg-site">
+        <h1 style="font-size:20px;margin-bottom:10px">⚡ 閃購特賣會</h1>
+        <div class="product"><span class="name">🖱️ 無線滑鼠</span><span class="price">$590</span></div>
+        <div class="product"><span class="name">⌨️ 機械鍵盤</span><span class="price">$1,290</span></div>
+        <div class="product"><span class="name">🔌 USB-C 快充線</span><span class="price">$390</span></div>
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin-top:10px">✅ 瀏覽器跑完 JavaScript 後,商品才出現在畫面上。</p>
+    </div>
+  </div>
+
+  <div class="widget">
+    <div class="widget-title">🎮 互動:親手打開 Network 面板找 API</div>
+    <div class="widget-desc">動態網頁的資料一定「從某個請求」來的。下面是模擬的開發者工具 Network 面板——<b>點每一列看它的回應內容,找出藏著商品資料的那一個!</b></div>
+    <div class="net-panel">
+      <div class="net-head"><span class="ntab on">Network</span><span>篩選:All ▾</span><span style="margin-left:auto">5 個請求</span></div>
+      <div id="netRows">
+        <div class="net-row" data-key="doc"><span>GET example.com/</span><span class="nr-type">document</span><span class="nr-size">12.4 kB</span></div>
+        <div class="net-row" data-key="css"><span>GET /style.css</span><span class="nr-type">stylesheet</span><span class="nr-size">3.1 kB</span></div>
+        <div class="net-row" data-key="api"><span>GET /api/products?page=1</span><span class="nr-type">fetch</span><span class="nr-size">2.8 kB</span></div>
+        <div class="net-row" data-key="js"><span>GET /analytics.js</span><span class="nr-type">script</span><span class="nr-size">45.2 kB</span></div>
+        <div class="net-row" data-key="img"><span>GET /logo.png</span><span class="nr-type">image</span><span class="nr-size">8.6 kB</span></div>
+      </div>
+      <div class="net-preview"><pre id="netPreview">👆 點任一列,這裡會顯示它的回應內容</pre></div>
+    </div>
+    <div class="cg-fb" id="netFb"></div>
+  </div>
+
+  <h3>判斷流程:先診斷,再開藥</h3>
+  <div class="flow">
+    <div class="flow-node">🔍 在網頁上<b>按右鍵 → 檢視原始碼</b>(Ctrl+U / Cmd+Opt+U),Ctrl+F 搜尋你想抓的資料</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-node">✅ <b>找得到</b> → 太好了,靜態頁面。第 4~6 章的 requests + BeautifulSoup 直接上。</div>
+    <div class="flow-arrow">↓ 找不到</div>
+    <div class="flow-node">🔓 <b>首選:找背後的 API</b> —— F12 → Network 分頁 → 重新整理 → 篩 XHR/Fetch → 承載資料的那個請求 → 直接用 requests 打它(通常回 JSON,超快超乾淨)</div>
+    <div class="flow-arrow">↓ API 不好找或有加密驗證</div>
+    <div class="flow-node">🤖 <b>終極手段:無頭瀏覽器</b> —— Playwright / Selenium,真的開一個看不見的瀏覽器幫你跑 JS</div>
+  </div>
+
+  <div class="runner">
+    <div class="codebox">
+      <div class="runner-head"><span class="dots"><i></i><i></i><i></i></span><span class="fname">dynamic.py</span><button class="run-btn">▶ 執行</button></div>
+      <pre class="code py">from playwright.sync_api import sync_playwright
+
+with sync_playwright() as p:
+    browser = p.chromium.launch(headless=True)  # 無頭模式:看不見視窗,但真的在跑
+    page = browser.new_page()
+    page.goto("https://example.com/flash-sale")
+
+    page.wait_for_selector(".product")           # 等 JavaScript 把商品畫出來
+
+    for item in page.query_selector_all(".product"):
+        name = item.query_selector(".name").inner_text()
+        price = item.query_selector(".price").inner_text()
+        print(name, "—", price)
+
+    browser.close()</pre>
+      <pre class="out hidden">🚀 啟動無頭瀏覽器…
+⏳ 前往 https://example.com/flash-sale
+⏳ 等待 .product 出現… 找到 3 個!
+🖱️ 無線滑鼠 — $590
+⌨️ 機械鍵盤 — $1,290
+🔌 USB-C 快充線 — $390
+🔒 關閉瀏覽器</pre>
+    </div>
+  </div>
+
+  <div class="callout note">💡 <b>安裝 Playwright:</b><code>pip install playwright</code> 然後 <code>playwright install chromium</code>(會下載一顆瀏覽器核心,約百 MB)。Selenium 用法類似;Playwright 是目前較新的主流。</div>
+  <div class="callout warn">⚠️ <b>代價:</b>無頭瀏覽器又慢又吃資源(每次都要真的渲染整個頁面)。能用 API 就用 API,能用 requests 就不要用瀏覽器——工具越重,越要省著用。</div>
+
+  <div class="recap"><span class="r-label">📌 本章重點</span><span class="r-chip">原始碼找不到 = JS 動態渲染</span><span class="r-chip">第一選擇:F12 找 XHR API</span><span class="r-chip">resp.json() 直接解析</span><span class="r-chip">無頭瀏覽器是最後手段</span></div>
+
+  <div class="quiz" data-autocomplete="1">
+    <div class="quiz-title">🧠 小測驗 · 第 7 章</div>
+    <div class="q" data-explain="靜態內容用 requests 就好;JS 動態渲染的內容才需要真實瀏覽器。先確認,再選工具。">
+      <p class="q-text">1. 哪種情況「才」需要 Selenium 或 Playwright?</p>
+      <div class="q-opts">
+        <button data-ok="0">所有網站都該用,比較潮</button>
+        <button data-ok="0">網頁原始碼裡就找得到資料時</button>
+        <button data-ok="1">資料由 JavaScript 動態渲染、原始碼裡找不到時</button>
+        <button data-ok="0">想爬得比較快的時候</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain="頁面資料多半來自 XHR/Fetch API,直接打 API 更快更省;無頭瀏覽器是最後手段。">
+      <p class="q-text">2. 遇到動態網頁,其實的「第一選擇」不是無頭瀏覽器,而是?</p>
+      <div class="q-opts">
+        <button data-ok="0">直接放棄</button>
+        <button data-ok="1">F12 找出背後的 API,用 requests 直接打它</button>
+        <button data-ok="0">買一台更強的電腦</button>
+        <button data-ok="0">截圖然後 OCR</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="quiz-result"></div>
+  </div>
+
+  <footer class="ch-foot">
+    <button class="btn ghost" data-nav="prev">← 上一章</button>
+    <button class="btn primary complete-btn" data-ch="7">✓ 標記完成,前往下一章</button>
+    <button class="btn primary" data-nav="next">下一章 →</button>
+  </footer>
+</section>
+
+<!-- ============ 第 8 章 ============ -->
+<section class="chapter" data-ch="8">
+  <header class="ch-head">
+    <div class="ch-meta"><span class="ch-num">Chapter 8</span><span class="ch-mins">⏱ 約 8 分鐘</span></div>
+    <h2>🤝 爬蟲禮儀與自保</h2>
+    <p class="ch-goal">🎯 這章你會學到:學會讀 robots.txt,建立限流與重試的好習慣,分清楚能爬與不能爬的界線。</p>
+  </header>
+
+  <h3>robots.txt:網站掛在門口的告示牌</h3>
+  <div class="prose">
+    <p>幾乎每個網站都會在根目錄放一份 <code>robots.txt</code>(試試 <code>網址/robots.txt</code>),告訴爬蟲「哪裡歡迎、哪裡請勿進入」。它是<b>業界禮儀</b>,不是法律條文——但違反它,往往同時違反網站服務條款,可能惹上法律麻煩。</p>
+  </div>
+
+  <div class="widget">
+    <div class="widget-title">🎮 互動:robots.txt 解讀測試</div>
+    <div class="robots-wrap">
+      <div>
+        <pre class="net"># https://example.com/robots.txt
+User-agent: *
+Disallow: /admin
+Disallow: /private
+Crawl-delay: 2
+
+User-agent: Googlebot
+Allow: /</pre>
+        <div class="callout tip" style="margin-top:12px">📌 解讀:<b>User-agent</b> 是規則針對的爬蟲(<code>*</code> = 所有爬蟲);<b>Disallow</b> 是禁止的路徑;<b>Crawl-delay</b> 是「請每次請求隔 2 秒」。</div>
+      </div>
+      <div>
+        <div class="quiz" data-msg="0">
+          <div class="q" data-explain="User-agent: * 代表所有爬蟲(包括你),/admin 底下全部禁止——這是別人的家,別硬闖。">
+            <p class="q-text">1️⃣ 你的小爬蟲想抓 <code>/admin/login</code>,可以嗎?</p>
+            <div class="q-opts">
+              <button data-ok="0">可以,robots.txt 又沒有強制力</button>
+              <button data-ok="1">不行,所有爬蟲都被禁止進入 /admin</button>
+            </div>
+            <div class="q-feedback"></div>
+          </div>
+          <div class="q" data-explain="/products 沒被 Disallow,可以爬,但要遵守 Crawl-delay: 2——每 2 秒最多一次請求。">
+            <p class="q-text">2️⃣ 抓 <code>/products</code> 呢?要注意什麼?</p>
+            <div class="q-opts">
+              <button data-ok="0">可以,愛多快就多快</button>
+              <button data-ok="1">可以,但請求之間要隔 2 秒(Crawl-delay: 2)</button>
+            </div>
+            <div class="q-feedback"></div>
+          </div>
+          <div class="q" data-explain="那段 Allow 只寫給 Googlebot,不適用於你。你的爬蟲適用 User-agent: * 那組規則。">
+            <p class="q-text">3️⃣ Googlebot 被允許全部爬,代表你也可以嗎?</p>
+            <div class="q-opts">
+              <button data-ok="0">可以,規則是通用的</button>
+              <button data-ok="1">不行,那段規則只針對 Googlebot</button>
+            </div>
+            <div class="q-feedback"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3>限流與重試:工業級的基本功</h3>
+  <div class="runner">
+    <div class="codebox">
+      <div class="runner-head"><span class="dots"><i></i><i></i><i></i></span><span class="fname">polite.py</span><button class="run-btn">▶ 執行</button></div>
+      <pre class="code py">import time
+import requests
+
+HEADERS = {"User-Agent": "PoliteScraper/1.0 (+mailto:me@example.com)"}
+
+def fetch(url, retries=3):
+    for attempt in range(1, retries + 1):
+        try:
+            resp = requests.get(url, headers=HEADERS, timeout=10)
+            if resp.status_code == 429:          # 被限流:照規定休息
+                wait = int(resp.headers.get("Retry-After", 30))
+                print(f"被限流,休息 {wait} 秒…")
+                time.sleep(wait)
+                continue
+            resp.raise_for_status()
+            return resp
+        except requests.RequestException as err:
+            print(f"嘗試 {attempt}/{retries} 失敗:{err}")
+            time.sleep(5)
+    raise RuntimeError(f"{url} 重試 {retries} 次仍然失敗")</pre>
+      <pre class="out hidden">嘗試 1/3 失敗:⏱ 連線逾時
+嘗試 2/3 失敗:💥 連線被重設
+嘗試 3/3 …✅ 成功!(狀態碼 200)</pre>
+    </div>
+  </div>
+
+  <h3>爬蟲黃金守則</h3>
+  <div class="callout ethic">
+    ⚖️ <b>能爬(綠燈):</b>公開可見的資料 · 遵守 robots.txt · 低頻率(每請求隔 2~5 秒)· 註明資料來源 · 學術研究、個人專案
+    <br><br>🚫 <b>別爬(紅燈):</b>需要登入/付費才能看的內容 · 個人資料(姓名+電話+住址…)· 爬來轉售或冒充原站 · 繞過驗證碼、帳號密碼等防護 · 高頻率打到影響網站服務
+    <br><br>📌 <b>一句話原則:</b>「如果這件事很多人同時做,網站會不會壞掉?別人知道我在做,會不會不好意思?」任一答案是 yes,就先停下來想想,或直接寫信問網站管理員。
+  </div>
+
+  <h3>🎮 隨堂挑戰:這樣爬,OK 還是 NG?</h3>
+  <div class="quiz" data-msg="0">
+    <div class="q" data-explain="每秒 20 次 = 一分鐘 1,200 個請求,小網站直接被打掛,你自己也會被封 IP。加 time.sleep(3)、挑離峰時段。">
+      <p class="q-text">1️⃣ 為了搶快,每秒對一個個人部落格發 20 次請求。</p>
+      <div class="q-opts">
+        <button data-ok="0">OK,技術上做得到就行</button>
+        <button data-ok="1">NG,這會打爆別人的網站</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain="政府開放資料平台本來就是設計給大家用的;爬取或直接下載都 OK,記得註明來源。">
+      <p class="q-text">2️⃣ 爬政府開放資料平台的公開 CSV,做住宅價格研究並註明來源。</p>
+      <div class="q-opts">
+        <button data-ok="1">OK,這正是開放資料存在的目的</button>
+        <button data-ok="0">NG,政府資料一律不能碰</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain="雙重紅線:需要登入/付費的內容 + 拿去轉售。若內容含他人個資,還可能觸犯個資法。">
+      <p class="q-text">3️⃣ 用自己的會員帳號登入後,爬會員限定的優惠碼,整理成清單拿去販售。</p>
+      <div class="q-opts">
+        <button data-ok="0">OK,反正是我自己的帳號</button>
+        <button data-ok="1">NG,登入內容 + 轉售是雙重紅線</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain="模範爬蟲:公開資料 + 低頻率(5 秒一次)+ 離峰時段 + 註明來源,四個綠燈全亮。">
+      <p class="q-text">4️⃣ 半夜 3 點、每 5 秒一次,爬縣政府公告列表做個人小工具,並註明資料來源。</p>
+      <div class="q-opts">
+        <button data-ok="1">OK,有禮貌又有分寸</button>
+        <button data-ok="0">NG,半夜爬一定不行</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+  </div>
+
+  <h3>🎯 下一步:去真實網站練功</h3>
+  <p>光看教學不夠——下面這些網站<b>專門設計給人練爬蟲</b>,合法、安全、歡迎你爬:</p>
+  <table>
+    <tr><th>網站</th><th>練什麼</th></tr>
+    <tr><td><a href="https://books.toscrape.com" target="_blank" rel="noopener">books.toscrape.com</a></td><td>假書店:練分頁、分類、價格與評級萃取——正是本課書店範例的真人版!</td></tr>
+    <tr><td><a href="https://quotes.toscrape.com" target="_blank" rel="noopener">quotes.toscrape.com</a></td><td>名言集:練列表萃取、追作者連結、還有登入練習(附測試帳密)</td></tr>
+    <tr><td><a href="https://httpbin.org" target="_blank" rel="noopener">httpbin.org</a></td><td>HTTP 遊樂場:親眼看看你發出的請求長什麼樣(Headers、GET/POST)</td></tr>
+    <tr><td><a href="https://data.gov.tw" target="_blank" rel="noopener">政府資料開放平台</a></td><td>真實開放資料:CSV/JSON 隨你下載,做 side project 的資料寶庫</td></tr>
+  </table>
+  <div class="callout tip">📌 建議的第一個真實專案:爬完 books.toscrape.com 的全部 50 頁 → 存成 CSV → 用 Excel 畫出價格分布。<b>跑通這一輪,你就真的從 0 到 1 了。</b></div>
+
+  <h3>🔍 繼續深造(選讀)</h3>
+  <details class="deep">
+    <summary>登入後才能爬?Session 與 Cookie</summary>
+    <div class="deep-body">
+      <p>用 <code>requests.Session()</code> 可以像瀏覽器一樣「記住」登入狀態:先 POST 登入,之後的請求會自動帶上 Cookie。但要記得紅線——會員專屬內容通常禁止爬取與轉傳,登入前先看服務條款。</p>
+      <pre class="code py">session = requests.Session()
+session.post("https://example.com/login",
+             data={"user": "me", "password": "***"})
+resp = session.get("https://example.com/member")   # 自動帶上 Cookie</pre>
+    </div>
+  </details>
+  <details class="deep">
+    <summary>爬得很慢?並行與排程自動化</summary>
+    <div class="deep-body">
+      <p>多頁面可以用 <code>concurrent.futures</code> 或 <code>asyncio + httpx</code> 並行加速,但<b>並行 = 更高的請求頻率</b>,務必更禮貌:同時最多 2~3 個請求、每次仍加延遲。想讓爬蟲每天自動執行,可用 Windows 工作排程器、macOS launchd 或 Linux crontab。</p>
+    </div>
+  </details>
+  <details class="deep">
+    <summary>想更專業?認識 Scrapy 框架</summary>
+    <div class="deep-body">
+      <p>Scrapy 是 Python 最知名的爬蟲框架:內建請求排程、自動重試、資料管道(清洗與存檔)、可擴充到分散式。學完本課的 requests + BeautifulSoup 再學 Scrapy 會非常順——因為概念完全相同,只是工具更強。</p>
+    </div>
+  </details>
+
+  <div class="recap"><span class="r-label">📌 本章重點</span><span class="r-chip">robots.txt → UA → sleep → 遇 429 就休息</span><span class="r-chip">公開·低頻·註明來源 = 綠燈</span><span class="r-chip">登入內容、個資、轉售 = 紅線</span></div>
+
+  <div class="quiz" data-autocomplete="1">
+    <div class="quiz-title">🧠 小測驗 · 第 8 章</div>
+    <div class="q" data-explain="robots.txt 沒有直接法律強制力,但違反它常常同時違反服務條款。遵守它是基本功。">
+      <p class="q-text">1. robots.txt 的性質是?</p>
+      <div class="q-opts">
+        <button data-ok="0">有法律強制力的契約</button>
+        <button data-ok="1">網站對爬蟲的公開約定,業界慣例上應該遵守</button>
+        <button data-ok="0">只是建議,完全可以不理</button>
+        <button data-ok="0">只有 Google 需要看</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain="Crawl-delay: 2 = 同一伺服器的請求之間隔 2 秒,對應程式裡的 time.sleep(2)。">
+      <p class="q-text">2. robots.txt 裡「Crawl-delay: 2」的意思是?</p>
+      <div class="q-opts">
+        <button data-ok="0">爬蟲要延遲 2 小時啟動</button>
+        <button data-ok="1">同一伺服器的請求之間要間隔 2 秒</button>
+        <button data-ok="0">每天只能爬 2 頁</button>
+        <button data-ok="0">連線逾時設 2 秒</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="quiz-result"></div>
+  </div>
+
+  <footer class="ch-foot">
+    <button class="btn ghost" data-nav="prev">← 上一章</button>
+    <button class="btn primary complete-btn" data-ch="8">✓ 標記完成,前往結業測驗</button>
+    <button class="btn primary" data-nav="next">結業測驗 →</button>
+  </footer>
+</section>
+
+<!-- ============ 第 9 章:結業 ============ -->
+<section class="chapter" data-ch="9">
+  <header class="ch-head">
+    <div class="ch-meta"><span class="ch-num">🎓 結業</span><span class="ch-mins">⏱ 約 15 分鐘 · 含畢業專題</span></div>
+    <h2>結業測驗:15 題驗收</h2>
+    <p class="ch-goal">🎯 規則:15 題選擇題,<b>首次答對 12 題以上</b>即結業,可領取證書。答錯的題目可以再試,但會留下「首答未正確」的紀錄。</p>
+  </header>
+
+  <h3>🧩 畢業專題:組裝你的爬蟲</h3>
+  <div class="widget">
+    <div class="widget-desc">最後的終極考驗!下面的程式碼被打散了——<b>按照正確的執行順序點擊</b>,組出一支「爬 3 頁書籍 → 印出總數」的完整爬蟲。卡住的時候想想:程式是由上往下執行的。</div>
+    <div class="asm-slots" id="asmSlots"><div class="slot-empty">組好的程式會出現在這裡…</div></div>
+    <div class="asm-pool" id="asmPool"></div>
+    <div class="cg-fb" id="asmFb"></div>
+    <div class="asm-actions"><button class="btn small ghost" id="asmReset">🔄 重新開始</button></div>
+    <pre class="out hidden" id="asmOut"></pre>
+  </div>
+
+  <div class="quiz" data-final="1" id="finalQuiz">
+    <div class="quiz-title">📝 綜合測驗</div>
+
+    <div class="q" data-explain="2xx 開頭都是成功,200 是最常見的。">
+      <p class="q-text">1. HTTP 狀態碼中,代表「請求成功」的是?</p>
+      <div class="q-opts">
+        <button data-ok="0">404</button>
+        <button data-ok="1">200</button>
+        <button data-ok="0">301</button>
+        <button data-ok="0">503</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain=". 選 class、# 選 id、什麼都不加選標籤。">
+      <p class="q-text">2. CSS 選擇器「.price」會選出?</p>
+      <div class="q-opts">
+        <button data-ok="0">id 為 price 的元素</button>
+        <button data-ok="0">標籤 &lt;price&gt;</button>
+        <button data-ok="1">所有 class 為 price 的元素</button>
+        <button data-ok="0">所有含「price」文字的元素</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain="第一個參數是 HTML 字串,第二個參數指定解析器。">
+      <p class="q-text">3. 建立 BeautifulSoup 物件的正確寫法是?</p>
+      <div class="q-opts">
+        <button data-ok="0">soup = BeautifulSoup(url)</button>
+        <button data-ok="1">soup = BeautifulSoup(response.text, "html.parser")</button>
+        <button data-ok="0">soup = response.beautifulsoup()</button>
+        <button data-ok="0">soup = BeautifulSoup(response.status_code)</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain="回傳 list(可能為空),所以常配 for 迴圈或先 len() 看數量。">
+      <p class="q-text">4. soup.select("div.book") 的回傳型別是?</p>
+      <div class="q-opts">
+        <button data-ok="0">一個字串</button>
+        <button data-ok="0">一個整數</button>
+        <button data-ok="0">一個 dict</button>
+        <button data-ok="1">一個 list(可能為空)</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain="id 像身分證字號,整頁唯一;class 才是可以重複的。">
+      <p class="q-text">5. 關於 HTML 的 id 屬性,哪個敘述正確?</p>
+      <div class="q-opts">
+        <button data-ok="0">可以無限重複使用</button>
+        <button data-ok="1">同一頁中應該唯一</button>
+        <button data-ok="0">一定要是數字</button>
+        <button data-ok="0">和 class 不能同時存在</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain="資料是 JS 之後才畫上去的。先去 F12 Network 找 API,不行再用 Playwright。">
+      <p class="q-text">6. 「檢視原始碼」找不到資料,但瀏覽器上明明看得到,最可能是?</p>
+      <div class="q-opts">
+        <button data-ok="0">資料被加密了</button>
+        <button data-ok="0">網站壞掉了</button>
+        <button data-ok="1">資料由 JavaScript 動態載入</button>
+        <button data-ok="0">你的瀏覽器問題</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain="照 Retry-After 等待並降低頻率。硬闖只會被封更慘。">
+      <p class="q-text">7. 收到 429 Too Many Requests,最正確的處理?</p>
+      <div class="q-opts">
+        <button data-ok="0">立刻重送 100 次</button>
+        <button data-ok="0">換 IP 繼續硬闖</button>
+        <button data-ok="0">關掉程式重寫</button>
+        <button data-ok="1">讀 Retry-After 等待,並降低請求頻率</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain="User-agent: * 代表所有爬蟲;禮貌上(也通常是條款上)不該爬。">
+      <p class="q-text">8. robots.txt 裡「User-agent: * / Disallow: /admin」代表?</p>
+      <div class="q-opts">
+        <button data-ok="1">所有爬蟲都應避免爬取 /admin</button>
+        <button data-ok="0">只有 Google 被禁止</button>
+        <button data-ok="0">/admin 頁面不存在</button>
+        <button data-ok="0">必須用 POST 才能爬 /admin</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain="低頻率 + 離峰時段,是爬蟲的道德,也是避免被封的自保。">
+      <p class="q-text">9. 爬取 500 頁資料時,應該在每次請求之間?</p>
+      <div class="q-opts">
+        <button data-ok="0">完全不用等</button>
+        <button data-ok="0">等 0.01 秒意思一下</button>
+        <button data-ok="1">time.sleep() 禮貌等待 2~5 秒</button>
+        <button data-ok="0">同時發 500 個請求最快</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain="個資、需登入的內容、轉售資料都是紅線;公開、低頻、註明來源是綠燈。">
+      <p class="q-text">10. 下列哪個行為踩到了紅線?</p>
+      <div class="q-opts">
+        <button data-ok="0">爬公開商品價格做學術研究,並註明來源</button>
+        <button data-ok="0">爬政府開放資料平台做視覺化</button>
+        <button data-ok="0">爬天氣資料做個人小專案</button>
+        <button data-ok="1">爬會員專區裡的個資拿去販售</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+
+    <div class="q" data-explain="select() 回空清單;select_one() 回 None——之後呼叫方法就會 AttributeError,記得先 if el: 檢查。">
+      <p class="q-text">11. 頁面上找不到任何 .price,soup.select_one(".price") 會回傳?</p>
+      <div class="q-opts">
+        <button data-ok="0">空字串</button>
+        <button data-ok="0">空清單 []</button>
+        <button data-ok="1">None</button>
+        <button data-ok="0">直接拋出例外</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain="它是保險絲:狀態碼不是 2xx 就丟例外,避免你傻傻解析一坨錯誤頁面。">
+      <p class="q-text">12. response.raise_for_status() 的作用是?</p>
+      <div class="q-opts">
+        <button data-ok="0">把狀態碼轉成大寫</button>
+        <button data-ok="0">自動重試請求三次</button>
+        <button data-ok="1">狀態碼不是 2xx 時丟出例外,避免解析錯誤頁面</button>
+        <button data-ok="0">把狀態碼印在終端機</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain='屬性用中括號取:el["href"] 或更安全的 el.get("href");get_text() 是取文字。'>
+      <p class="q-text">13. 想取出 <code>&lt;a href="/next"&gt;</code> 的網址,寫法是?</p>
+      <div class="q-opts">
+        <button data-ok="0">a.get_text()</button>
+        <button data-ok="1">a["href"]</button>
+        <button data-ok="0">a.select("href")</button>
+        <button data-ok="0">a.text</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain="sleep 是給伺服器喘息的空檔:避免被限流/封鎖,也是爬蟲的基本禮貌。">
+      <p class="q-text">14. 在分頁迴圈裡加上 time.sleep(3),目的是?</p>
+      <div class="q-opts">
+        <button data-ok="0">讓程式碼看起來比較長</button>
+        <button data-ok="0">Python 規定一定要寫</button>
+        <button data-ok="1">讓每次請求間隔 3 秒,給伺服器喘息、避免被封</button>
+        <button data-ok="0">讓爬蟲跑得更快</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+    <div class="q" data-explain="API 回 JSON:requests.get(api_url) + resp.json() 直接拿結構化資料,快又輕。">
+      <p class="q-text">15. 在 Network 面板找到 /api/products 之後,最推薦的做法是?</p>
+      <div class="q-opts">
+        <button data-ok="0">用 Playwright 開 100 個分頁</button>
+        <button data-ok="1">requests 直接打這個 API,用 resp.json() 解析</button>
+        <button data-ok="0">手動把 JSON 複製下來</button>
+        <button data-ok="0">截圖存檔再辨識</button>
+      </div>
+      <div class="q-feedback"></div>
+    </div>
+
+    <div id="finalResult" class="hidden">
+      <div id="finalScore"></div>
+      <div id="failBox" class="hidden" style="text-align:center;margin:14px 0">
+        <p>差一點點!複習答錯的章節,再來一次一定過 💪</p>
+        <button id="retakeBtn" class="btn primary">🔄 重考一次</button>
+      </div>
+      <div id="passBox" class="hidden">
+        <p style="text-align:center">填上名字,領取你的結業證書:</p>
+        <div style="text-align:center;margin:10px 0">
+          <input id="certName" placeholder="你的名字" style="font-size:15px;padding:10px 14px;border:2px solid #c7d2fe;border-radius:10px;width:min(280px,80%)">
+        </div>
+        <div class="cert">
+          <div class="cert-badge">🎓</div>
+          <h3>網路爬蟲結業證書</h3>
+          <div class="cert-name" id="certDisplayName">未來的爬蟲工程師</div>
+          <div class="cert-meta" id="certScoreLine"></div>
+          <div class="cert-meta" id="certDate"></div>
+          <div class="cert-foot">SCRAPING 101 · 互動式教學 · 0 → 1</div>
+        </div>
+        <p style="text-align:center;font-size:14px">下一步建議:找一個你真的想抓的網站(先看 robots.txt!),把這 10 章的技能用上去。<br>祝你爬蟲之路順利 🕷️</p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="ch-foot">
+    <button class="btn ghost" data-nav="prev">← 上一章</button>
+    <button class="btn primary" data-nav="next">回到首章 ↺</button>
+  </footer>
+</section>
+
+</div></main>
+</div>
+<div id="toast" role="status"></div>
+
+<script>
+(function(){
+'use strict';
+var $ = function(s, r){ return (r||document).querySelector(s); };
+var $$ = function(s, r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
+function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+
+/* ---------- toast ---------- */
+var toastTimer = null;
+function toast(msg){
+  var t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2400);
+}
+
+/* ---------- 複製按鈕 ---------- */
+$$('.copy-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var text = btn.getAttribute('data-copy') || '';
+    function done(){ btn.textContent = '已複製 ✓'; setTimeout(function(){ btn.textContent = '複製'; }, 1400); }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done, function(){ fallback(); });
+    } else { fallback(); }
+    function fallback(){
+      var ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      try{ document.execCommand('copy'); }catch(e){}
+      ta.remove(); done();
+    }
+  });
+});
+
+/* ---------- Python 語法上色 ---------- */
+var PY_RE = /(#[^\n]*)|((?:[fFrRbB]{0,2})"(?:[^"\\\n]|\\.)*"|(?:[fFrRbB]{0,2})'(?:[^'\\\n]|\\.)*')|\b(def|return|for|in|while|if|elif|else|import|from|as|with|try|except|finally|break|continue|and|or|not|None|True|False|class|lambda|pass|raise|print|range|len|open|sleep|append|fetch)\b|(\b\d+(?:\.\d+)?\b)/g;
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function highlightPython(code){
+  var out = '', last = 0, m;
+  PY_RE.lastIndex = 0;
+  while((m = PY_RE.exec(code))){
+    out += esc(code.slice(last, m.index));
+    if(m[1]) out += '<span class="tk-c">' + esc(m[1]) + '</span>';
+    else if(m[2]) out += '<span class="tk-s">' + esc(m[2]) + '</span>';
+    else if(m[3]) out += '<span class="tk-k">' + esc(m[3]) + '</span>';
+    else out += '<span class="tk-n">' + esc(m[4]) + '</span>';
+    last = m.index + m[0].length;
+  }
+  return out + esc(code.slice(last));
+}
+$$('pre.py').forEach(function(p){ p.innerHTML = highlightPython(p.textContent); });
+
+/* ---------- 進度與導覽 ---------- */
+var TOTAL = 10;
+var state = { completed: [], current: 0 };
+try{
+  var saved = JSON.parse(localStorage.getItem('scraper101') || 'null');
+  if(saved && Array.isArray(saved.completed)) state = saved;
+}catch(e){}
+function saveState(){ try{ localStorage.setItem('scraper101', JSON.stringify(state)); }catch(e){} }
+function isDone(i){ return state.completed.indexOf(i) !== -1; }
+function renderProgress(){
+  var pct = Math.round(state.completed.length / TOTAL * 100);
+  $('#progressBar').style.width = pct + '%';
+  $('#progressText').textContent = pct + '%';
+  $$('.nav-item').forEach(function(n){
+    var ch = +n.getAttribute('data-ch');
+    n.classList.toggle('done', isDone(ch));
+    n.classList.toggle('cur', ch === state.current);
+  });
+}
+function showChapter(i){
+  state.current = Math.max(0, Math.min(TOTAL - 1, i));
+  $$('.chapter').forEach(function(c){
+    c.classList.toggle('active', +c.getAttribute('data-ch') === state.current);
+  });
+  renderProgress(); saveState();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+$$('.nav-item').forEach(function(n){
+  n.addEventListener('click', function(){ showChapter(+n.getAttribute('data-ch')); });
+});
+document.addEventListener('click', function(e){
+  var nav = e.target.closest('[data-nav]');
+  if(nav){
+    var dir = nav.getAttribute('data-nav');
+    if(dir === 'next') showChapter(state.current === TOTAL - 1 ? 0 : state.current + 1);
+    else showChapter(state.current - 1);
+    return;
+  }
+  var comp = e.target.closest('.complete-btn');
+  if(comp){
+    var i = +comp.getAttribute('data-ch');
+    if(!isDone(i)){ state.completed.push(i); toast('🎉 第 ' + i + ' 章完成!'); }
+    renderProgress(); saveState();
+    showChapter(i + 1);
+  }
+});
+function completeChapter(i){
+  if(isDone(i)) return;
+  state.completed.push(i);
+  renderProgress(); saveState();
+  toast('🎉 第 ' + i + ' 章完成!');
+}
+$('#resetProgress').addEventListener('click', function(){
+  if(confirm('確定要清除所有學習進度,重新開始嗎?')){
+    try{ localStorage.removeItem('scraper101'); }catch(e){}
+    location.reload();
+  }
+});
+
+/* ---------- 測驗引擎 ---------- */
+function initQuiz(qz){
+  qz.addEventListener('click', function(e){
+    var opt = e.target.closest('.q-opts button');
+    if(!opt) return;
+    var q = opt.closest('.q');
+    if(q.classList.contains('done')) return;
+    var ok = opt.getAttribute('data-ok') === '1';
+    var fb = q.querySelector('.q-feedback');
+    if(!ok){
+      opt.classList.add('wrong');
+      q.setAttribute('data-failed', '1');
+      fb.textContent = '❌ 不對喔,再想想看——提示就在章節內容裡!';
+      fb.className = 'q-feedback show bad';
+      return;
+    }
+    opt.classList.add('correct');
+    q.classList.add('done');
+    fb.textContent = '✅ 答對了! ' + (q.getAttribute('data-explain') || '');
+    fb.className = 'q-feedback show good';
+    var qs = $$('.q', qz);
+    if(qs.every(function(x){ return x.classList.contains('done'); })){
+      if(qz.getAttribute('data-final') === '1'){ finishFinal(qz); }
+      else{
+        var res = qz.querySelector('.quiz-result');
+        if(res && qz.getAttribute('data-msg') !== '0'){
+          res.classList.add('show');
+          res.textContent = '🎉 這章的測驗全數答對,章節自動打勾!';
+        }
+        var ch = qz.closest('.chapter');
+        if(ch && qz.getAttribute('data-autocomplete') === '1') completeChapter(+ch.getAttribute('data-ch'));
+      }
+    }
+  });
+}
+$$('.quiz').forEach(initQuiz);
+
+/* ---------- 結業測驗 ---------- */
+function finishFinal(qz){
+  var qs = $$('.q', qz);
+  var score = qs.filter(function(x){ return !x.getAttribute('data-failed'); }).length;
+  var result = $('#finalResult');
+  result.classList.remove('hidden');
+  var scoreEl = $('#finalScore');
+  scoreEl.classList.add('show');
+  scoreEl.innerHTML = '你的分數:<b>' + score + ' / ' + qs.length + '</b>';
+  var pass = score >= 12;
+  $('#failBox').classList.toggle('hidden', pass);
+  $('#passBox').classList.toggle('hidden', !pass);
+  if(pass){
+    $('#certScoreLine').textContent = '綜合測驗:' + score + ' / ' + qs.length + ' 首答正確';
+    $('#certDate').textContent = '頒發日期:' + new Date().toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' });
+    confetti();
+    completeChapter(9);
+  }
+}
+$('#certName').addEventListener('input', function(){
+  $('#certDisplayName').textContent = this.value.trim() || '未來的爬蟲工程師';
+});
+$('#retakeBtn').addEventListener('click', function(){
+  $$('#finalQuiz .q').forEach(function(q){
+    q.classList.remove('done');
+    q.removeAttribute('data-failed');
+    $$('.q-opts button', q).forEach(function(b){ b.classList.remove('correct', 'wrong'); });
+    var fb = q.querySelector('.q-feedback');
+    fb.className = 'q-feedback'; fb.textContent = '';
+  });
+  $('#finalResult').classList.add('hidden');
+  $('#finalScore').classList.remove('show');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+function confetti(){
+  var colors = ['#f43f5e','#f59e0b','#10b981','#3b82f6','#8b5cf6','#fbbf24'];
+  for(var i = 0; i < 90; i++){
+    var d = document.createElement('div');
+    d.className = 'confetti-piece';
+    d.style.left = Math.random() * 100 + 'vw';
+    d.style.background = colors[i % colors.length];
+    d.style.animationDuration = (2.2 + Math.random() * 1.8) + 's';
+    d.style.animationDelay = (Math.random() * 0.6) + 's';
+    d.style.transform = 'rotate(' + Math.random() * 360 + 'deg)';
+    d.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    document.body.appendChild(d);
+    setTimeout(function(node){ return function(){ node.remove(); }; }(d), 5000);
+  }
+}
+
+/* ---------- 程式碼執行模擬器 ---------- */
+async function typeLines(outEl){
+  var text = outEl.textContent;
+  outEl.classList.remove('hidden');
+  outEl.innerHTML = '';
+  var lines = text.split('\n');
+  for(var li = 0; li < lines.length; li++){
+    var line = lines[li];
+    var div = document.createElement('div');
+    outEl.appendChild(div);
+    for(var i = 0; i < line.length; i += 2){
+      div.textContent = line.slice(0, i + 2);
+      await sleep(9);
+    }
+    div.textContent = line;
+    await sleep(70);
+  }
+}
+$$('.runner').forEach(function(run){
+  var btn = $('.run-btn', run), out = $('.out', run);
+  if(!btn || !out) return;
+  btn.addEventListener('click', async function(){
+    if(btn.disabled) return;
+    btn.disabled = true;
+    btn.textContent = '⏳ 執行中…';
+    await typeLines(out);
+    btn.textContent = '▶ 再跑一次';
+    btn.disabled = false;
+  });
+});
+
+/* ---------- HTTP 請求模擬器 ---------- */
+var HTTP_SCEN = {
+  ok: {
+    url: 'https://example.com/books',
+    req: 'GET /books HTTP/1.1\nHost: example.com\nUser-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15)\nAccept: text/html',
+    res: 'HTTP/1.1 200 OK\nContent-Type: text/html; charset=utf-8\n\n<!DOCTYPE html>\n<html>\n <head><title>書蟲網路書店</title></head>\n <body>\n  <h1 id="logo">書蟲網路書店</h1>\n  <div class="book">\n   <h3 class="title">銀河帝國</h3>\n   <span class="price">$320</span>\n  </div>\n  <!-- 其餘 5 本書略 -->\n </body>\n</html>',
+    verdict: '🎉 狀態碼 200:成功拿到 HTML!這一坨文字就是爬蟲的原料,下一章教你從裡面挖寶。',
+    vcls: 'st-good'
+  },
+  page2: {
+    url: 'https://example.com/books?page=2',
+    req: 'GET /books?page=2 HTTP/1.1\nHost: example.com\nUser-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15)',
+    res: 'HTTP/1.1 200 OK\nContent-Type: text/html; charset=utf-8\n\n<html>\n <body>\n  <div class="book">\n   <h3 class="title">物種起源</h3>\n   <span class="price">$490</span>\n  </div>\n  <!-- 第 2 頁的書籍略 -->\n </body>\n</html>',
+    verdict: '🎉 200 OK。注意到網址多了 ?page=2 嗎?這就是第 5 章分頁爬取的鑰匙!',
+    vcls: 'st-good'
+  },
+  notfound: {
+    url: 'https://example.com/ghost-page',
+    req: 'GET /ghost-page HTTP/1.1\nHost: example.com\nUser-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15)',
+    res: 'HTTP/1.1 404 Not Found\nContent-Type: text/html\n\n<html>\n <body>\n  <h1>404 - 查無此頁</h1>\n  <p>你要找的頁面不存在。</p>\n </body>\n</html>',
+    verdict: '⚠️ 狀態碼 404:網址不存在。爬蟲要學會處理它——記錄下來、跳過,別讓程式 crash。',
+    vcls: 'st-warn'
+  },
+  forbidden: {
+    url: 'https://example.com/secret',
+    req: 'GET /secret HTTP/1.1\nHost: example.com\nUser-Agent: python-requests/2.31\n(伺服器:又是你這種預設 UA 的爬蟲…)',
+    res: 'HTTP/1.1 403 Forbidden\nContent-Type: text/plain\n\n你的 User-Agent 是「python-requests/2.31」,已被本站擋下。\n提示:設定像樣的 User-Agent 再來(第 4、8 章詳談)。',
+    verdict: '🛡️ 狀態碼 403:伺服器認出你是爬蟲,拒絕服務。對策:像樣的 User-Agent + 放慢速度。',
+    vcls: 'st-bad'
+  },
+  toomany: {
+    url: 'https://example.com/books',
+    req: 'GET /books HTTP/1.1\n(10 秒內的第 6 個請求…)',
+    res: 'HTTP/1.1 429 Too Many Requests\nRetry-After: 10\n\n請求頻率過高,請稍後再試。',
+    verdict: '🚦 狀態碼 429:你太快了!被限流。真實網站也會這樣對付粗魯的爬蟲——記得 time.sleep()。',
+    vcls: 'st-bad'
+  }
+};
+var curSc = 'ok', httpBusy = false, sendTimes = [];
+function httpStep(container, html, preText, cls){
+  var row = document.createElement('div');
+  row.className = 'http-step' + (cls ? ' ' + cls : '');
+  row.innerHTML = html;
+  if(preText !== undefined){
+    var pre = document.createElement('pre');
+    pre.className = 'net';
+    pre.textContent = preText;
+    row.appendChild(pre);
+  }
+  container.appendChild(row);
+  requestAnimationFrame(function(){ row.classList.add('in'); });
+}
+async function sendHttp(){
+  if(httpBusy) return;
+  var now = Date.now();
+  sendTimes = sendTimes.filter(function(t){ return now - t < 10000; });
+  sendTimes.push(now);
+  var sc = sendTimes.length >= 6 ? 'toomany' : curSc;
+  var s = HTTP_SCEN[sc];
+  httpBusy = true;
+  var btn = $('#httpSend');
+  btn.disabled = true; btn.textContent = '⏳ 傳送中…';
+  var log = $('#httpLog');
+  log.innerHTML = '';
+  $('#httpTip').classList.add('hidden');
+  httpStep(log, '🔎 <b>步驟 1</b> — 解析網域(DNS):example.com → 93.184.216.34');
+  await sleep(500);
+  httpStep(log, '🔌 <b>步驟 2</b> — 與伺服器建立 TCP 連線… 完成!');
+  await sleep(500);
+  httpStep(log, '📤 <b>步驟 3</b> — 你的程式送出 HTTP <b>請求(Request)</b>:', s.req);
+  await sleep(750);
+  httpStep(log, '📥 <b>步驟 4</b> — 伺服器回傳 HTTP <b>回應(Response)</b>:', s.res);
+  await sleep(550);
+  httpStep(log, s.verdict, undefined, 'verdict ' + s.vcls);
+  if(sc === 'toomany') $('#httpTip').classList.remove('hidden');
+  btn.disabled = false; btn.textContent = '🚀 發送請求';
+  httpBusy = false;
+}
+$$('.http-scenario').forEach(function(b){
+  b.addEventListener('click', function(){
+    curSc = b.getAttribute('data-sc');
+    $$('.http-scenario').forEach(function(x){ x.classList.toggle('on', x === b); });
+    $('#httpUrl').value = HTTP_SCEN[curSc].url;
+    $('#httpLog').innerHTML = '';
+    $('#httpTip').classList.add('hidden');
+  });
+});
+$('#httpSend').addEventListener('click', sendHttp);
+$('#httpReset').addEventListener('click', function(){
+  $('#httpLog').innerHTML = '';
+  sendTimes = [];
+  $('#httpTip').classList.add('hidden');
+});
+
+/* ---------- HTML 家譜樹 ---------- */
+var TREE_DESC = {
+  html:  { l: '<html>', d: '整份網頁的根節點,所有東西都住在裡面。' },
+  head:  { l: '<head>', d: '給瀏覽器看的設定區(編碼、分頁標題…),使用者看不到內容。' },
+  title: { l: '<title>', d: '顯示在瀏覽器分頁上的文字。' },
+  body:  { l: '<body>', d: '使用者看得到的所有內容都在這裡——爬蟲的主戰場。' },
+  div:   { l: '<div class="book">', d: '「盒子」元素,把相關內容打包。class="book" 是爬蟲最好的路標:看到它就知道這盒裝著一本書。' },
+  h3:    { l: '<h3 class="title">', d: '標題元素,文字內容「銀河帝國」就是書名——爬蟲用 select(".title") 抓它。' },
+  p:     { l: '<p class="price">', d: '段落元素,文字內容「$320」就是價格——爬蟲用 select(".price") 抓它。' }
+};
+$$('[data-t]').forEach(function(el){
+  el.addEventListener('click', function(){
+    var id = el.getAttribute('data-t');
+    $$('[data-t]').forEach(function(x){ x.classList.remove('t-active'); });
+    $$('[data-t="' + id + '"]').forEach(function(x){ x.classList.add('t-active'); });
+    var info = TREE_DESC[id];
+    if(info) $('#treeDesc').textContent = '📌 ' + info.l + ' — ' + info.d;
+  });
+});
+
+/* ---------- CSS 選擇器遊樂場 ---------- */
+var pg = $('#playground');
+function selMatches(sel){
+  try{ return $$(sel, pg); }catch(e){ return null; }
+}
+function clearHits(){ $$('.sel-hit', pg).forEach(function(x){ x.classList.remove('sel-hit'); }); }
+function applySel(){
+  var sel = $('#selInput').value.trim();
+  clearHits();
+  var countEl = $('#selCount'), listEl = $('#selList');
+  if(!sel){ countEl.textContent = '輸入選擇器開始玩!'; listEl.textContent = ''; return; }
+  var m = selMatches(sel);
+  if(m === null){ countEl.textContent = '⚠️ 選擇器語法錯誤,檢查一下?'; listEl.textContent = ''; return; }
+  m.forEach(function(x){ x.classList.add('sel-hit'); });
+  countEl.textContent = '命中 ' + m.length + ' 個元素';
+  listEl.textContent = m.length
+    ? ('→ ' + m.slice(0, 8).map(function(x){ return x.textContent.trim().replace(/\s+/g, ' '); }).join(' | ') + (m.length > 8 ? ' …' : ''))
+    : '(沒有任何元素符合)';
+}
+$('#selInput').addEventListener('input', applySel);
+applySel();
+
+var CH_DONE = {};
+$$('.challenge').forEach(function(ch){
+  $('.check-btn', ch).addEventListener('click', function(){
+    var idx = ch.getAttribute('data-idx');
+    var sel = $('#selInput').value.trim();
+    var fb = $('.ch-fb', ch);
+    if(!sel){ fb.textContent = '⚠️ 先在上面的輸入框輸入選擇器。'; fb.className = 'ch-fb show bad'; return; }
+    var user = selMatches(sel);
+    var accept = (ch.getAttribute('data-accept') || '').split('||');
+    var hit = user && accept.some(function(a){
+      var m = selMatches(a);
+      return m && m.length === user.length && m.every(function(x, i){ return x === user[i]; });
+    });
+    if(hit){
+      ch.classList.add('done');
+      fb.textContent = '✅ 正確!「' + sel + '」正是要找的答案。';
+      fb.className = 'ch-fb show good';
+      CH_DONE[idx] = true;
+      if(Object.keys(CH_DONE).length === $$('.challenge').length) $('#pgWin').classList.remove('hidden');
+    } else {
+      fb.textContent = '❌ 目前選到 ' + (user ? user.length : '?') + ' 個元素,不是題目要的,再試試(可按「提示」)!';
+      fb.className = 'ch-fb show bad';
+    }
+  });
+  $('.hint-btn', ch).addEventListener('click', function(){
+    $('.ch-hint', ch).classList.toggle('hidden');
+  });
+});
+
+/* ---------- 分頁爬蟲模擬器 ---------- */
+var PAGES = [
+  [ { t: '銀河帝國', p: '$320' }, { t: '海底兩萬里', p: '$280' }, { t: '紅樓夢', p: '$450' } ],
+  [ { t: '老人與海', p: '$220' }, { t: '資料煉金術', p: '$580' }, { t: '深入淺出 Python', p: '$650' } ],
+  [ { t: '物種起源', p: '$490' }, { t: '程式設計的藝術', p: '$720' }, { t: '資料視覺化之美', p: '$540' } ]
+];
+var pagIdx = 0, pagBusy = false;
+async function pagNext(){
+  if(pagBusy || pagIdx >= PAGES.length) return;
+  pagBusy = true;
+  var st = $('#pagStatus'), tbody = $('#pagTable tbody');
+  if(pagIdx > 0){
+    st.textContent = '😴 time.sleep(2) …(禮貌地等待,不要打爆伺服器)';
+    await sleep(900);
+  }
+  var page = pagIdx + 1;
+  st.textContent = '⏳ 正在請求 https://example.com/books?page=' + page + ' …';
+  await sleep(900);
+  PAGES[pagIdx].forEach(function(b){
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + b.t + '</td><td>' + b.p + '</td><td>第 ' + page + ' 頁</td>';
+    tbody.appendChild(tr);
+  });
+  var total = (pagIdx + 1) * 3;
+  var line = document.createElement('div');
+  line.textContent = '第 ' + page + ' 頁完成,目前累積 ' + total + ' 筆';
+  $('#pagLog').appendChild(line);
+  pagIdx++;
+  if(pagIdx >= PAGES.length){
+    st.textContent = '✅ 迴圈結束!總共抓到 9 筆資料,下一章就把它存成檔案。';
+    var n = $('#pagNext');
+    n.disabled = true; n.textContent = '全部完成 🎉';
+  } else {
+    st.textContent = '已收到第 ' + page + ' 頁。按「爬下一頁」繼續。';
+  }
+  pagBusy = false;
+}
+$('#pagNext').addEventListener('click', pagNext);
+$('#pagReset').addEventListener('click', function(){
+  pagIdx = 0; pagBusy = false;
+  $('#pagTable tbody').innerHTML = '';
+  $('#pagLog').innerHTML = '';
+  $('#pagStatus').textContent = '按「爬下一頁」開始。';
+  var n = $('#pagNext');
+  n.disabled = false; n.textContent = '🕷️ 爬下一頁';
+});
+
+/* ---------- 存檔格式預覽 ---------- */
+$$('.fmt-btn').forEach(function(b){
+  b.addEventListener('click', function(){
+    $$('.fmt-btn').forEach(function(x){ x.classList.toggle('on', x === b); });
+    var f = b.getAttribute('data-fmt');
+    ['csv', 'json', 'xlsx'].forEach(function(k){
+      $('#prev-' + k).classList.toggle('hidden', k !== f);
+    });
+  });
+});
+
+/* ---------- 動態網頁分頁 ---------- */
+$$('.dyn-tab').forEach(function(t){
+  t.addEventListener('click', function(){
+    $$('.dyn-tab').forEach(function(x){ x.classList.toggle('on', x === t); });
+    $('#paneSrc').classList.toggle('hidden', t.getAttribute('data-tab') !== 'src');
+    $('#paneDom').classList.toggle('hidden', t.getAttribute('data-tab') !== 'dom');
+  });
+});
+
+/* ---------- 解剖圖(URL / 請求行)---------- */
+var ANATOMY = {
+  scheme: '「協定」—— 用什麼規則和伺服器對話。https 表示加密連線;爬蟲照網址寫就好。',
+  host: '「網域」—— 要拜訪哪一台伺服器,例如 example.com。',
+  path: '「路徑」—— 伺服器上的哪個頁面。/books 就是書籍列表頁。',
+  query: '「查詢參數」—— ?後面用 & 串接的額外要求。page=2 是第 2 頁、sort=price 是按價格排序——分頁爬蟲就靠它!',
+  frag: '「錨點」—— 只給瀏覽器在頁內跳轉用(#reviews 跳到評論區),伺服器根本收不到,爬蟲可以直接無視。',
+  reqline: '「請求行」—— 方法(GET/POST)+ 路徑 + 協定版本。讀作:「請給我 /books 這個資源」。',
+  host2: '「Host」—— 告訴伺服器你要哪個網站(同一台機器常掛好幾個網站,靠它分辨)。',
+  ua: '「User-Agent」—— 你的身分證明。爬蟲也要帶一個像樣的,否則常常被 403。',
+  accept: '「Accept」—— 我看得懂哪些格式:text/html(網頁)或 application/json(API 的資料)。',
+  cookie: '「Cookie」—— 之前留下的身分憑證(登入狀態、購物車)。要爬登入後的內容就得帶它——但記得第 8 章的紅線!'
+};
+$$('.anatomy').forEach(function(box){
+  var desc = box.parentNode.querySelector('.anatomy-desc');
+  $$('.at', box).forEach(function(tok){
+    tok.addEventListener('click', function(){
+      $$('.at', box).forEach(function(x){ x.classList.remove('active'); });
+      tok.classList.add('active');
+      var info = ANATOMY[tok.getAttribute('data-a')];
+      if(desc && info) desc.textContent = '📌 ' + info;
+    });
+  });
+});
+
+/* ---------- 狀態碼連連看 ---------- */
+var matchSel = null;
+$$('#matchGame .match-chip').forEach(function(chip){
+  chip.addEventListener('click', function(){
+    if(chip.classList.contains('lock')) return;
+    var fb = $('#matchFb');
+    if(!matchSel){
+      $$('#matchGame .match-chip.sel').forEach(function(x){ x.classList.remove('sel'); });
+      chip.classList.add('sel');
+      matchSel = chip;
+      fb.textContent = ''; fb.className = 'cg-fb';
+      return;
+    }
+    if(matchSel === chip){ chip.classList.remove('sel'); matchSel = null; return; }
+    if(matchSel.getAttribute('data-pair') === chip.getAttribute('data-pair')){
+      matchSel.classList.remove('sel'); matchSel.classList.add('lock');
+      chip.classList.remove('sel'); chip.classList.add('lock');
+      matchSel = null;
+      var locked = $$('#matchGame .match-chip.lock').length;
+      if(locked === 12){
+        fb.textContent = '🏆 六組全配對!狀態碼已經刻進你的腦海了。';
+      } else {
+        fb.textContent = '✅ 配對成功!還剩 ' + (12 - locked) / 2 + ' 組。';
+      }
+      fb.className = 'cg-fb good';
+    } else {
+      var a = matchSel, b = chip;
+      a.classList.add('err'); b.classList.add('err');
+      matchSel = null;
+      fb.textContent = '❌ 這兩個不是一組,再試試!';
+      fb.className = 'cg-fb bad';
+      setTimeout(function(){ a.classList.remove('err','sel'); b.classList.remove('err','sel'); }, 380);
+    }
+  });
+});
+
+/* ---------- 元素點點看 ---------- */
+var CG_ROUNDS = [
+  { key: 'price1', ask: '第 1 題:點出「珍珠奶茶」的價格', ok: '很好!價格住在 class="item-price" 的元素裡,爬蟲用 select(".item-price") 就能抓到。' },
+  { key: 'more', ask: '第 2 題:點出「看更多飲料」的連結', ok: '對!它是一個 <a> 連結——href 屬性就是爬蟲接下來要拜訪的網址。' },
+  { key: 'name2', ask: '第 3 題:點出「冬瓜檸檬」(第二杯的名字)', ok: '正確!兩杯的名字都用 class="item-name",select(".item-name") 可以一次抓到兩個。' }
+];
+var CG_LABEL = {
+  shop: '店家標題(h2)', slogan: '標語(p.slogan)',
+  name1: '飲料名(span.item-name)', price1: '價格(b.item-price)',
+  name2: '飲料名(span.item-name)', price2: '價格(b.item-price)',
+  more: '連結(a.more)'
+};
+var cgIdx = 0;
+function cgShow(){ $('#cgRound').textContent = CG_ROUNDS[cgIdx].ask; }
+$$('#clickGame .mg-el').forEach(function(el){
+  el.addEventListener('click', function(){
+    var fb = $('#cgFb');
+    if(el.getAttribute('data-key') === CG_ROUNDS[cgIdx].key){
+      fb.textContent = '✅ ' + CG_ROUNDS[cgIdx].ok;
+      fb.className = 'cg-fb good';
+      cgIdx++;
+      if(cgIdx < CG_ROUNDS.length){
+        setTimeout(function(){ cgShow(); }, 1400);
+      } else {
+        $('#cgRound').textContent = '🏆 三題全對!你已經會「在網頁上」直接看出資料的位置了。';
+      }
+    } else {
+      fb.textContent = '❌ 你點到的是「' + (CG_LABEL[el.getAttribute('data-key')] || '其他元素') + '」,再試試!';
+      fb.className = 'cg-fb bad';
+    }
+  });
+});
+cgShow();
+
+/* ---------- 分頁網址推算 ---------- */
+$('#urlGuessBtn').addEventListener('click', function(){
+  var v = $('#urlGuess').value.trim();
+  var fb = $('#urlGuessFb');
+  if(!v){
+    fb.textContent = '⚠️ 先在上面輸入網址。';
+    fb.className = 'cg-fb bad';
+  } else if(v.indexOf('page=7') !== -1){
+    fb.textContent = '✅ 正確!規律就是「固定部分不動,只有 page= 換數字」。寫成 for page in range(1, 8) 就能爬完 7 頁。';
+    fb.className = 'cg-fb good';
+  } else {
+    fb.textContent = '❌「' + v + '」還不對。提示:https://example.com/books 完全不變,只要 ?page= 後面改成 7。';
+    fb.className = 'cg-fb bad';
+  }
+});
+
+/* ---------- Network 面板模擬器 ---------- */
+var NET_PREVIEWS = {
+  doc: '<!DOCTYPE html>\n<html>\n <div id="app">\n   <!-- 商品清單由 JavaScript 載入 -->\n </div>\n</html>\n\n❌ 原始碼裡沒有商品資料!',
+  css: 'body { font-family: sans-serif; }\n.product { display: flex; }\n\n(只是畫面的樣式,沒有資料)',
+  api: '{\n  "products": [\n    { "name": "無線滑鼠", "price": 590 },\n    { "name": "機械鍵盤", "price": 1290 },\n    { "name": "USB-C 快充線", "price": 390 }\n  ],\n  "totalPages": 3\n}',
+  js: '(analytics 追蹤程式,壓縮後數萬字元……與商品無關)',
+  img: '(PNG 圖片的二進位內容)'
+};
+$$('#netRows .net-row').forEach(function(row){
+  row.addEventListener('click', function(){
+    $$('#netRows .net-row').forEach(function(x){ x.classList.remove('sel'); });
+    row.classList.add('sel');
+    $('#netPreview').textContent = NET_PREVIEWS[row.getAttribute('data-key')];
+    var fb = $('#netFb');
+    if(row.getAttribute('data-key') === 'api'){
+      fb.textContent = '🎉 找到了!它就是商品資料 API。爬蟲只要 requests.get("https://example.com/api/products?page=1") 再 resp.json(),就直接拿到全部商品——比開瀏覽器快多了!';
+      fb.className = 'cg-fb good';
+    } else {
+      fb.textContent = '這一列沒有商品資料,再點點看其他列。';
+      fb.className = 'cg-fb';
+    }
+  });
+});
+
+/* ---------- 自我檢查清單 ---------- */
+var ckBoxes = $$('#checklist input[type="checkbox"]');
+ckBoxes.forEach(function(c){
+  c.addEventListener('change', function(){
+    var n = ckBoxes.filter(function(x){ return x.checked; }).length;
+    var el = document.querySelector('.ck-result');
+    var msg = '已勾 ' + n + ' / ' + ckBoxes.length;
+    if(n === ckBoxes.length) msg += ' —— 萬事俱備,出發!🚀';
+    else if(n >= 3) msg += ' —— 很不錯,邊學邊補也來得及!';
+    else msg += ' —— 沒關係,這門課會帶你補起來。';
+    el.textContent = msg;
+  });
+});
+
+/* ---------- 畢業專題拼裝台 ---------- */
+var ASM_LINES = [
+  'import requests',
+  'from bs4 import BeautifulSoup',
+  'all_books = []                        # 準備一個大清單',
+  'for page in range(1, 4):              # 爬第 1~3 頁',
+  '    resp = requests.get(f"https://example.com/books?page={page}", timeout=10)',
+  '    resp.raise_for_status()',
+  '    soup = BeautifulSoup(resp.text, "html.parser")',
+  '    for book in soup.select("div.book"):',
+  '        all_books.append(book.select_one(".title").get_text(strip=True))',
+  'print("總共爬到", len(all_books), "本書")'
+];
+var ASM_DISPLAY_ORDER = [3, 0, 7, 1, 5, 2, 9, 4, 6, 8];   // 打散呈現(無一在原位)
+var asmPlaced = [];
+function asmRender(){
+  var pool = $('#asmPool'), slots = $('#asmSlots');
+  pool.innerHTML = '';
+  ASM_DISPLAY_ORDER.forEach(function(idx){
+    if(asmPlaced.indexOf(idx) !== -1) return;
+    var b = document.createElement('button');
+    b.textContent = ASM_LINES[idx];
+    b.addEventListener('click', function(){ asmPick(idx, b); });
+    pool.appendChild(b);
+  });
+  slots.innerHTML = '';
+  if(asmPlaced.length === 0){
+    slots.innerHTML = '<div class="slot-empty">組好的程式會出現在這裡…</div>';
+  } else {
+    asmPlaced.forEach(function(idx, i){
+      var d = document.createElement('div');
+      d.className = 'slot-line';
+      var num = document.createElement('b');
+      num.textContent = (i + 1) + '.';
+      d.appendChild(num);
+      d.appendChild(document.createTextNode(ASM_LINES[idx]));
+      slots.appendChild(d);
+    });
+  }
+}
+function asmPick(idx, btn){
+  var fb = $('#asmFb');
+  if(asmPlaced.length && idx === asmPlaced[asmPlaced.length - 1]) return;
+  if(idx === asmPlaced.length){
+    asmPlaced.push(idx);
+    btn.classList.add('gone');
+    fb.textContent = '';
+    fb.className = 'cg-fb';
+    if(asmPlaced.length === ASM_LINES.length){
+      fb.textContent = '🎉 組裝完成!這就是一支完整爬蟲——import → 準備清單 → 迴圈抓頁 → 解析 → 萃取累積 → 報告結果。';
+      fb.className = 'cg-fb good';
+      var out = $('#asmOut');
+      out.classList.remove('hidden');
+      out.textContent = '總共爬到 9 本書';
+    }
+    asmRender();
+  } else {
+    fb.textContent = '❌ 這一行還不能放——想想看:這一行用到的東西,上面的程式碼準備好了嗎?';
+    fb.className = 'cg-fb bad';
+  }
+}
+$('#asmReset').addEventListener('click', function(){
+  asmPlaced = [];
+  $('#asmFb').textContent = '';
+  $('#asmFb').className = 'cg-fb';
+  $('#asmOut').classList.add('hidden');
+  asmRender();
+});
+asmRender();
+
+/* ---------- 鍵盤 ← → 翻頁 ---------- */
+document.addEventListener('keydown', function(e){
+  if(e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+  var t = e.target;
+  if(t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+  if(e.key === 'ArrowRight') showChapter(state.current + 1);
+  else showChapter(state.current - 1);
+});
+
+/* ---------- 主題切換(跟隨系統,可手動切換並記住) ---------- */
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  var btn = $('#themeToggle');
+  if(btn) btn.textContent = (t === 'dark') ? '🌙' : '☀️';
+  var meta = document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content', t === 'dark' ? '#0f1117' : '#f6f8fa');
+}
+(function initTheme(){
+  var t = document.documentElement.getAttribute('data-theme') || 'dark';
+  applyTheme(t);
+  var btn = $('#themeToggle');
+  if(btn) btn.addEventListener('click', function(){
+    var cur = document.documentElement.getAttribute('data-theme');
+    var next = (cur === 'dark') ? 'light' : 'dark';
+    applyTheme(next);
+    try{ localStorage.setItem('scraper101-theme', next); }catch(e){}
+  });
+})();
+
+/* ---------- 初始化 ---------- */
+showChapter(Math.min(state.current, TOTAL - 1));
+renderProgress();
+})();
+</script>
+</body>
+</html>
