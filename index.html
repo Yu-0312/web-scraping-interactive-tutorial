@@ -143,7 +143,7 @@ td code{white-space:nowrap}
 /* ===== 程式碼區塊 ===== */
 .codebox{margin:16px 0;border:1px solid var(--code-border);border-radius:6px;overflow:hidden}
 .codebox pre{margin:0;overflow-x:auto}
-pre.code,pre.net,pre.out{background:var(--code-bg);color:var(--code-ink);font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:13.5px;line-height:1.75;padding:15px 18px;white-space:pre;tab-size:4}
+pre.code,pre.net,pre.out{background:var(--code-bg);color:var(--code-ink);font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:13.5px;line-height:1.75;padding:15px 18px;white-space:pre;tab-size:4;overflow-x:auto;max-width:100%}
 pre.out{border-top:1px dashed var(--code-border);color:var(--green)}
 .runner-head{display:flex;align-items:center;gap:8px;background:var(--panel-bg);border-bottom:1px solid var(--border);padding:7px 14px}
 .runner-head .dots{display:flex;gap:6px}
@@ -402,6 +402,8 @@ details.deep summary:hover{background:var(--hover-bg)}
   .tree-wrap,.pag-wrap,.robots-wrap{grid-template-columns:1fr}
   .ch-head h2{font-size:23px}
   .topbar .hsub{display:none}
+  /* 窄螢幕上寬表格自己水平捲動，不撐開整頁 */
+  .content table{display:block;overflow-x:auto}
 }
 </style>
 </head>
@@ -1299,11 +1301,12 @@ https://example.com/books?page=3   ← 規律:只有 page= 後面的數字在變
 import requests
 from bs4 import BeautifulSoup
 
+HEADERS = {"User-Agent": "MyFirstScraper/1.0 (student@example.com)"}
 all_books = []                     # 一個大清單,累積每一頁的收穫
 
 for page in range(1, 4):           # 想爬幾頁就填多少
     url = f"https://example.com/books?page={page}"
-    resp = requests.get(url, timeout=10)
+    resp = requests.get(url, headers=HEADERS, timeout=10)
     resp.raise_for_status()
     soup = BeautifulSoup(resp.text, "html.parser")
 
@@ -1428,22 +1431,25 @@ print("總共抓到", len(all_books), "筆資料")</pre>
       <pre class="code py">import csv
 import json
 
-# 存成 CSV —— Excel 雙擊就能開
-with open("books.csv", "w", encoding="utf-8", newline="") as f:
+# 存成 CSV —— Excel 雙擊就能開(utf-8-sig 會加上 BOM,Excel 才認得中文)
+with open("books.csv", "w", encoding="utf-8-sig", newline="") as f:
     writer = csv.DictWriter(f, fieldnames=["書名", "價格", "來自頁"])
     writer.writeheader()
     writer.writerows(all_books)
+print(f"✅ 已寫入 books.csv({len(all_books)} 筆)")
 
 # 存成 JSON —— 程式好讀、能保留階層
 with open("books.json", "w", encoding="utf-8") as f:
     json.dump(all_books, f, ensure_ascii=False, indent=2)
+print(f"✅ 已寫入 books.json({len(all_books)} 筆)")
+print("完成!檔案就在你的資料夾裡")
 
 # 進階:存 Excel(xlsx)只要 pandas 一行
 # import pandas as pd
 # pd.DataFrame(all_books).to_excel("books.xlsx", index=False)</pre>
       <pre class="out hidden">✅ 已寫入 books.csv(9 筆)
 ✅ 已寫入 books.json(9 筆)
-print(f"完成!檔案就在你的資料夾裡")</pre>
+完成!檔案就在你的資料夾裡</pre>
     </div>
   </div>
 
@@ -1521,7 +1527,7 @@ print(f"完成!檔案就在你的資料夾裡")</pre>
     </div>
   </div>
 
-  <div class="callout warn">⚠️ <b>中文存檔兩大護身符:</b>① <code>open(..., encoding="utf-8")</code>——否則 Windows 下中文可能變亂碼;② JSON 加 <code>ensure_ascii=False</code>——否則中文會變成 <code>\u98a8</code> 這種天書。CSV 記得 <code>newline=""</code>,避免 Excel 出現空行。</div>
+  <div class="callout warn">⚠️ <b>中文存檔兩大護身符:</b>① 一律寫明編碼——JSON 用 <code>encoding="utf-8"</code>;要給 Excel 開的 CSV 用 <code>encoding="utf-8-sig"</code>,否則 Excel 會把沒有 BOM 的 UTF-8 當成 Big5 之類的舊編碼,中文變亂碼;② JSON 加 <code>ensure_ascii=False</code>——否則中文會變成 <code>\u98a8</code> 這種天書。CSV 記得 <code>newline=""</code>,避免 Excel 出現空行。</div>
 
   <div class="callout note">💡 <b>巢狀 JSON 長相:</b>爬蟲最常從 API 拿到這種「清單裡有字典」的資料,Python 用 <code>data["products"][0]["name"]</code> 一層層取值:</div>
   <pre class="codebox net">{
@@ -1532,7 +1538,7 @@ print(f"完成!檔案就在你的資料夾裡")</pre>
   "totalPages": 3
 }</pre>
 
-  <div class="recap"><span class="r-label">📌 本章重點</span><span class="r-chip">爬一次、存起來、重複用</span><span class="r-chip">給人看 CSV/Excel、給程式 JSON</span><span class="r-chip">utf-8 + ensure_ascii=False + newline=""</span></div>
+  <div class="recap"><span class="r-label">📌 本章重點</span><span class="r-chip">爬一次、存起來、重複用</span><span class="r-chip">給人看 CSV/Excel、給程式 JSON</span><span class="r-chip">CSV 用 utf-8-sig、JSON 用 utf-8 + ensure_ascii=False</span></div>
 
   <div class="quiz" data-autocomplete="1">
     <div class="quiz-title">🧠 小測驗 · 第 6 章</div>
@@ -1546,7 +1552,7 @@ print(f"完成!檔案就在你的資料夾裡")</pre>
       </div>
       <div class="q-feedback"></div>
     </div>
-    <div class="q" data-explain="ensure_ascii=False 保留原文,搭配 encoding="utf-8" 是存中文的標配。">
+    <div class="q" data-explain='ensure_ascii=False 保留原文,搭配 encoding="utf-8" 是存中文的標配。'>
       <p class="q-text">2. 用 json.dump 存中文,檔案裡出現一堆 \u98a8,怎麼解?</p>
       <div class="q-opts">
         <button data-ok="0">沒救了,JSON 不能存中文</button>
@@ -1776,7 +1782,8 @@ def fetch(url, retries=3):
         try:
             resp = requests.get(url, headers=HEADERS, timeout=10)
             if resp.status_code == 429:          # 被限流:照規定休息
-                wait = int(resp.headers.get("Retry-After", 30))
+                retry_after = resp.headers.get("Retry-After", "")
+                wait = int(retry_after) if retry_after.isdigit() else 30   # 也可能是日期格式
                 print(f"被限流,休息 {wait} 秒…")
                 time.sleep(wait)
                 continue
@@ -2168,7 +2175,14 @@ var TOTAL = 10;
 var state = { completed: [], current: 0 };
 try{
   var saved = JSON.parse(localStorage.getItem('scraper101') || 'null');
-  if(saved && Array.isArray(saved.completed)) state = saved;
+  if(saved && Array.isArray(saved.completed)){
+    state = {
+      completed: saved.completed.filter(function(i, k, arr){
+        return typeof i === 'number' && i >= 0 && i < TOTAL && arr.indexOf(i) === k;
+      }),
+      current: (typeof saved.current === 'number' && saved.current >= 0 && saved.current < TOTAL) ? Math.floor(saved.current) : 0
+    };
+  }
 }catch(e){}
 function saveState(){ try{ localStorage.setItem('scraper101', JSON.stringify(state)); }catch(e){} }
 function isDone(i){ return state.completed.indexOf(i) !== -1; }
@@ -2405,7 +2419,7 @@ async function sendHttp(){
   var log = $('#httpLog');
   log.innerHTML = '';
   $('#httpTip').classList.add('hidden');
-  httpStep(log, '🔎 <b>步驟 1</b> — 解析網域(DNS):example.com → 93.184.216.34');
+  httpStep(log, '🔎 <b>步驟 1</b> — 解析網域(DNS):example.com → 伺服器的 IP 位址(例如 203.0.113.10)');
   await sleep(500);
   httpStep(log, '🔌 <b>步驟 2</b> — 與伺服器建立 TCP 連線… 完成!');
   await sleep(500);
@@ -2674,7 +2688,7 @@ $('#urlGuessBtn').addEventListener('click', function(){
   if(!v){
     fb.textContent = '⚠️ 先在上面輸入網址。';
     fb.className = 'cg-fb bad';
-  } else if(v.indexOf('page=7') !== -1){
+  } else if(/[?&]page=7(?![0-9])/.test(v)){
     fb.textContent = '✅ 正確!規律就是「固定部分不動,只有 page= 換數字」。寫成 for page in range(1, 8) 就能爬完 7 頁。';
     fb.className = 'cg-fb good';
   } else {
